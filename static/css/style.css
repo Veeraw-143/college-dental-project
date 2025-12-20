@@ -1,0 +1,100 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: Arial, sans-serif;
+    background: #f5f9fc;
+    color: #333;
+}
+
+/* Header */
+.header {
+    background: #2fa4a9;
+    color: white;
+    text-align: center;
+    padding: 30px;
+}
+
+/* Nav */
+.nav {
+    background: #ffffff;
+    padding: 12px;
+    text-align: center;
+}
+
+.nav a {
+    margin: 0 15px;
+    text-decoration: none;
+    color: #2fa4a9;
+    font-weight: bold;
+}
+
+/* Hero */
+.hero {
+    padding: 50px;
+    text-align: center;
+    background: url('https://images.unsplash.com/photo-1588776814546-1ffcf47267a5') center/cover;
+    color: white;
+}
+
+.hero button {
+    margin-top: 15px;
+    padding: 12px 20px;
+    border: none;
+    background: #2fa4a9;
+    color: white;
+    font-size: 16px;
+    cursor: pointer;
+}
+
+/* Services */
+.services {
+    padding: 40px;
+    background: white;
+    text-align: center;
+}
+
+.service-box {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 15px;
+    margin-top: 20px;
+}
+
+.service-box div {
+    padding: 20px;
+    background: #e6f6f7;
+    border-radius: 8px;
+}
+
+/* Appointment */
+.appointment {
+    padding: 40px;
+    text-align: center;
+}
+
+.appointment input {
+    width: 250px;
+    padding: 10px;
+    margin: 8px;
+}
+
+.appointment button {
+    padding: 10px 20px;
+    background: #2fa4a9;
+    border: none;
+    color: white;
+    cursor: pointer;
+}
+
+/* Footer */
+.footer {
+    background: #2fa4a9;
+    color: white;
+    text-align: center;
+    padding: 15px;
+    margin-top: 30px;
+}

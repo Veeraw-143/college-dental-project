@@ -1,0 +1,59 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Surabi Dental Clinic</title>
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+</head>
+<body>
+
+<!-- Header -->
+<header class="header">
+    <h1>SmileCare Dental Clinic</h1>
+    <p>Your Smile, Our Priority</p>
+</header>
+
+<!-- Navigation -->
+<nav class="nav">
+    <a href="#">Home</a>
+    <a href="#">Services</a>
+    <a href="#">Doctors</a>
+    <a href="#">Contact</a>
+</nav>
+
+<!-- Hero Section -->
+<section class="hero">
+    <h2>Healthy Teeth, Confident Smile</h2>
+    <p>Advanced dental care for all ages</p>
+    <button onclick="scrollToAppointment()">Book Appointment</button>
+</section>
+
+<!-- Services -->
+<section class="services">
+    <h2>Our Services</h2>
+    <div class="service-box">
+        <div>🦷 Teeth Cleaning</div>
+        <div>😁 Teeth Whitening</div>
+        <div>🛠 Root Canal</div>
+        <div>👶 Pediatric Dentistry</div>
+    </div>
+</section>
+
+<!-- Appointment -->
+<section class="appointment" id="appointment">
+    <h2>Book an Appointment</h2>
+    <input type="text" id="name" placeholder="Patient Name">
+    <input type="tel" id="phone" placeholder="Phone Number">
+    <input type="date" id="date">
+    <button onclick="bookAppointment()">Submit</button>
+</section>
+
+<!-- Footer -->
+<footer class="footer">
+    <p>© 2025 SmileCare Dental Clinic | All Rights Reserved</p>
+</footer>
+
+<script src="{% static 'js/script.js' %}"></script>
+</body>
+</html>
