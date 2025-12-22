@@ -4,59 +4,136 @@
 <head>
     <meta charset="UTF-8">
     <title>Surabi Dental Clinic</title>
+    <meta name="viewport" content="width=device-width,initial-scale=1">
     <link rel="stylesheet" href="{% static 'css/style.css' %}">
 </head>
 <body>
 
 <!-- Header -->
 <header class="header">
-    <h1>SmileCare Dental Clinic</h1>
-    <p>Your Smile, Our Priority</p>
+    <div class="header-inner">
+        <div class="logo">
+            <span class="logo-mark">🦷</span>
+            <div>
+                <h1>SmileCare</h1>
+                <small>Dental Clinic</small>
+            </div>
+        </div>
+        <p class="tag">Your Smile, Our Priority</p>
+    </div>
 </header>
 
 <!-- Navigation -->
-<nav class="nav">
-    <a href="#">Home</a>
-    <a href="#">Services</a>
-    <a href="#">Doctors</a>
-    <a href="#">Contact</a>
+<nav class="nav" role="navigation" aria-label="Main navigation">
+    <div class="nav-inner">
+        <div class="nav-links">
+            <a href="#" class="nav-link">Home</a>
+            <a href="#services" class="nav-link">Services</a>
+            <a href="#doctors" class="nav-link">Doctors</a>
+            <a href="#contact" class="nav-link">Contact</a>
+        </div>
+        <div class="nav-actions">
+            <button id="theme-toggle" class="theme-toggle" aria-label="Toggle theme">🌙</button>
+        </div>
+    </div>
 </nav>
 
 <!-- Hero Section -->
-<section class="hero">
-    <h2>Healthy Teeth, Confident Smile</h2>
-    <p>Advanced dental care for all ages</p>
-    <button onclick="scrollToAppointment()">Book Appointment</button>
+<section class="hero" aria-labelledby="hero-heading">
+    <div class="hero-overlay"></div>
+    <div class="hero-content">
+        <h2 id="hero-heading">Healthy Teeth, Confident Smile</h2>
+        <p class="lead">Advanced dental care with a gentle touch.</p>
+        <div class="hero-ctas">
+            <button class="btn btn-primary" onclick="scrollToAppointment()">Book Appointment</button>
+            <a class="btn btn-outline" href="#services">View Services</a>
+        </div>
+    </div>
 </section>
 
 <!-- Services -->
-<section class="services">
+<section class="services" id="services">
     <h2>Our Services</h2>
     <div class="service-box">
-        <div>🦷 Teeth Cleaning</div>
-        <div>😁 Teeth Whitening</div>
-        <div>🛠 Root Canal</div>
-        <div>👶 Pediatric Dentistry</div>
+        <article class="service-card" tabindex="0" data-service="Cleaning">
+            <div class="icon">🦷</div>
+            <h3>Teeth Cleaning</h3>
+            <p>Gentle cleaning to keep your smile bright.</p>
+        </article>
+        <article class="service-card" tabindex="0" data-service="Whitening">
+            <div class="icon">😁</div>
+            <h3>Teeth Whitening</h3>
+            <p>Safe, long-lasting whitening treatments.</p>
+        </article>
+        <article class="service-card" tabindex="0" data-service="Root Canal">
+            <div class="icon">🛠</div>
+            <h3>Root Canal</h3>
+            <p>Modern root canal therapy with comfort care.</p>
+        </article>
+        <article class="service-card" tabindex="0" data-service="Pediatric">
+            <div class="icon">👶</div>
+            <h3>Pediatric Dentistry</h3>
+            <p>Kid-friendly visits with a gentle approach.</p>
+        </article>
     </div>
 </section>
 
 <!-- Appointment -->
-
 <section class="appointment" id="appointment" >
-    <h2>Book an Appointment</h2>
-    <form method="POST" action="{% url 'booking' %}">
-        {% csrf_token %}
-        <input type="text" id="name" name="name" placeholder="Patient Name" required>
-        <input type="email" id="mail" name="mail" placeholder="Email ID " required>
-        <input type="tel" id="mobile" name="mobile" placeholder="Mobile Number" required>
-        <input type="date" id="date" name="date" required>
-        <button type="submit">Submit</button>
-    </form>
+    <div class="appointment-card">
+        <h2>Book an Appointment</h2>
+        <form id="appointment-form" method="POST" action="{% url 'booking' %}">
+            {% csrf_token %}
+            <div class="field">
+                <input type="text" id="name" name="name" placeholder="" required>
+                <label for="name">Patient Name</label>
+                <div class="error" data-for="name" aria-live="polite"></div>
+            </div>
+            <div class="field">
+                <input type="email" id="mail" name="mail" placeholder="" required>
+                <label for="mail">Email Address</label>
+                <div class="error" data-for="mail" aria-live="polite"></div>
+            </div>
+            <div class="field">
+                <input type="tel" id="mobile" name="mobile" placeholder="" required>
+                <label for="mobile">Mobile Number</label>
+                <div class="error" data-for="mobile" aria-live="polite"></div>
+            </div>
+            <div class="field">
+                <input type="date" id="date" name="date" required>
+                <label for="date">Preferred Date</label>
+                <div class="error" data-for="date" aria-live="polite"></div>
+            </div>
+            <div class="form-actions">
+                <button type="submit" class="btn btn-primary">Submit</button>
+            </div>
+            <div id="form-feedback" class="form-feedback" role="status" aria-live="polite"></div>
+            {% if error %}
+              <div class="form-feedback error-server" role="alert">{{ error }}</div>
+            {% endif %}
+            {% if success %}
+              <div class="form-feedback success-server" role="status">{{ success }}</div>
+            {% endif %}
+        </form>
+    </div>
 </section>
+
 <!-- Footer -->
 <footer class="footer">
     <p>© 2025 SmileCare Dental Clinic | All Rights Reserved</p>
 </footer>
+
+<!-- Modal -->
+<div id="modal" class="modal" aria-hidden="true" role="dialog" aria-modal="true">
+    <div class="modal-content">
+        <button class="modal-close" aria-label="Close">&times;</button>
+        <h3 id="modal-title">Appointment Submitted</h3>
+        <p id="modal-message">We have received your request and will contact you shortly.</p>
+        <div class="modal-actions">
+            <button class="btn btn-primary" id="modal-ok">OK</button>
+        </div>
+    </div>
+</div>
 
 <script src="{% static 'js/script.js' %}"></script>
 </body>
