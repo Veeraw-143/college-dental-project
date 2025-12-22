@@ -41,12 +41,17 @@
 </section>
 
 <!-- Appointment -->
-<section class="appointment" id="appointment">
+
+<section class="appointment" id="appointment" >
     <h2>Book an Appointment</h2>
-    <input type="text" id="name" placeholder="Patient Name">
-    <input type="tel" id="phone" placeholder="Phone Number">
-    <input type="date" id="date">
-    <button onclick="bookAppointment()">Submit</button>
+    <form method="POST" action="{% url 'booking' %}">
+        {% csrf_token %}
+        <input type="text" id="name" name="name" placeholder="Patient Name" required>
+        <input type="email" id="mail" name="mail" placeholder="Email ID " required>
+        <input type="tel" id="mobile" name="mobile" placeholder="Mobile Number" required>
+        <input type="date" id="date" name="date" required>
+        <button type="submit">Submit</button>
+    </form>
 </section>
 <!-- Footer -->
 <footer class="footer">

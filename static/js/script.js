@@ -13,13 +13,14 @@ function scrollToAppointment() {
 
 function bookAppointment() {
     const name = document.getElementById("name").value;
-    const phone = document.getElementById("phone").value;
+    const mail = document.getElementById("mail").value;
+    const mobile = document.getElementById("mobile").value;
     const date = document.getElementById("date").value;
 
-    if (!name || !phone || !date) {
+    if (!name || !mail || !mobile || !date) {
         alert("Please fill all fields");
         return;
     }
 
-    AppointmentService.book({ name, phone, date });
+    AppointmentService.book({ name, mail, mobile, date });
 }
