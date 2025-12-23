@@ -51,6 +51,28 @@ document.addEventListener('DOMContentLoaded', () => {
   // Smooth scroll helper used by inline onclick
   window.scrollToAppointment = () => document.getElementById('appointment').scrollIntoView({behavior:'smooth'});
 
+  // Reveal-on-scroll using IntersectionObserver
+  const revealEls = document.querySelectorAll('.reveal');
+  if ('IntersectionObserver' in window && revealEls.length) {
+    const obs = new IntersectionObserver((entries)=>{
+      entries.forEach(e=>{
+        if(e.isIntersecting){
+          e.target.classList.add('in-view');
+          obs.unobserve(e.target);
+        }
+      });
+    },{threshold:0.08});
+    revealEls.forEach(el=>obs.observe(el));
+  } else { // fallback
+    revealEls.forEach(el=>el.classList.add('in-view'));
+  }
+
+  // Helper: read cookie (for CSRF)
+  function getCookie(name){
+    const m = document.cookie.match('(^|;)\\s*' + name + '\\s*=\\s*([^;]+)');
+    return m ? m.pop() : '';
+  }
+
   // Service card interactions
   serviceCards.forEach(card => {
     card.addEventListener('click', () => showServiceDetail(card));
@@ -121,10 +143,50 @@ document.addEventListener('DOMContentLoaded', () => {
     burstConfetti();
     formFeedback.textContent = 'Submitting appointment…';
 
-    // Delay native submit a bit to allow animation (still accessible)
-    setTimeout(()=> {
-      form.submit();
-    }, 900);
+    // If fetch is supported, do AJAX submit for a smoother UX (falls back to native submit)
+    if (window.fetch){
+      const action = form.action;
+      const fd = new FormData(form);
+      const csrf = getCookie('csrftoken') || getCookie('csrf');
+      fetch(action, {
+        method:'POST',
+        headers:{
+          'X-Requested-With': 'XMLHttpRequest',
+          'X-CSRFToken': csrf,
+          'Accept': 'application/json'
+        },
+        body: fd,
+        credentials: 'same-origin'
+      }).then(res => {
+        const ct = res.headers.get('content-type') || '';
+        if (ct.indexOf('application/json') !== -1) return res.json();
+        return res.text().then(t => ({html:t}));
+      }).then(data => {
+        if (data && data.success){
+          showModal('Thank you!', data.message || 'Your appointment request is received.');
+          burstConfetti();
+          formFeedback.textContent = data.message || 'Submitted';
+          form.reset();
+          document.querySelectorAll('.field').forEach(f=>f.classList.remove('filled'));
+        } else {
+          // map server errors to fields if provided
+          if (data && data.errors){
+            showErrors(data.errors);
+            formFeedback.textContent = data.message || 'Please fix the fields below.';
+          } else if (data && data.error){
+            formFeedback.textContent = data.error;
+          } else {
+            // fallback: submit the native form
+            setTimeout(()=> form.submit(), 900);
+          }
+        }
+      }).catch(()=> {
+        // network or parse error -> fallback to native submit
+        setTimeout(()=> form.submit(), 900);
+      });
+    } else {
+      setTimeout(()=> form.submit(), 900);
+    }
   });
 
   function validate({name, mail, mobile, date}){
