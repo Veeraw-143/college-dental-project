@@ -7,6 +7,7 @@ from django.conf import settings
 from django.core import signing
 from django.core.mail import EmailMessage
 from django.urls import reverse
+from django.contrib import messages
 
 logger = logging.getLogger(__name__)
 
@@ -57,7 +58,7 @@ class bookings(models.Model):
             'date': str(self.appointment_date)
         }
         signer = signing.Signer()
-        token = signer.sign(self.pk)
+        token = signer.sign(str(self.pk))
         if include_url:
             site = getattr(settings, 'SITE_URL', None)
             if site:
@@ -80,8 +81,15 @@ class bookings(models.Model):
         # Prepare email
         subject = 'Your appointment is confirmed — SmileCare'
         message = f'Hello {self.Name},\n\nYour appointment on {self.appointment_date} has been accepted. Attached is a QR code for your appointment.\n\nThank you,\nSmileCare Team'
-        from_email = getattr(settings, 'DEFAULT_FROM_EMAIL', 'no-reply@smilecare.example')
-        to = [self.mail]
+        from_email = getattr(settings, 'DEFAULT_FROM_EMAIL', 'pulipandi8158@gmail.com')
+        # Ensure we have a valid recipient
+        recipient = (self.mail or '').strip()
+        if not recipient:
+            logger.error('Attempted to send appointment email but booking %s has no email address', self.pk)
+            if request is not None:
+                messages.error(request, f'Cannot send email for booking {self.pk}: no email address provided')
+            raise ValueError('Booking has no email address')
+        to = [recipient]
 
         # Generate QR bytes (include URL if SITE_URL configured)
         try:
@@ -94,10 +102,23 @@ class bookings(models.Model):
         try:
             email = EmailMessage(subject=subject, body=message, from_email=from_email, to=to)
             email.attach(f'appointment_{self.pk}.png', qr_bytes, 'image/png')
-            email.send(fail_silently=False)
-            logger.info('Sent appointment QR to email %s (booking id %s)', self.mail, self.pk)
+            sent = email.send(fail_silently=False)
+            logger.info('Sent appointment QR to email %s (booking id %s) - send() returned: %s', self.mail, self.pk, sent)
+
+            # If a request object is provided, add an admin message that clarifies how the email was delivered
+            backend = getattr(settings, 'EMAIL_BACKEND', '')
+            if 'console' in backend:
+                logger.info('Console email backend is configured; email was printed to the server console')
+                if request is not None:
+                    messages.info(request, f'Email for booking {self.pk} was printed to the server console (console email backend in use).')
+            else:
+                if request is not None:
+                    messages.success(request, f'Email for booking {self.pk} was sent via configured email backend.')
         except Exception as e:
             logger.exception('Failed to send appointment email: %s', e)
+            # If request provided, show a helpful admin error
+            if request is not None:
+                messages.error(request, f'Failed to send appointment email for booking {self.pk}: {e}')
             raise
 
         # Optionally send SMS if Twilio is configured and sms_enabled True
@@ -124,4 +145,38 @@ class bookings(models.Model):
                     # Do not raise; email was already sent
             else:
                 logger.debug('Twilio not configured; skipping SMS send for booking %s', self.pk)
+
+    def send_rejection_notification(self, request=None, reason: str | None = None):
+        """Send a rejection email to the user notifying them their booking was rejected."""
+        subject = 'Your appointment request — SmileCare'
+        reason_text = f" Reason: {reason}" if reason else ''
+        message = (
+            f'Hello {self.Name},\n\n'
+            f'We regret to inform you that your appointment on {self.appointment_date} has been rejected.{reason_text}\n\n'
+            'If you would like to reschedule, please contact us or submit a new request.\n\n'
+            'Thank you,\nSmileCare Team'
+        )
+        from_email = getattr(settings, 'DEFAULT_FROM_EMAIL', 'no-reply@smilecare.example')
+        recipient = (self.mail or '').strip()
+        if not recipient:
+            logger.error('Attempted to send rejection email but booking %s has no email address', self.pk)
+            if request is not None:
+                messages.error(request, f'Cannot send rejection email for booking {self.pk}: no email address provided')
+            raise ValueError('Booking has no email address')
+        to = [recipient]
+
+        try:
+            email = EmailMessage(subject=subject, body=message, from_email=from_email, to=to)
+            sent = email.send(fail_silently=False)
+            logger.info('Sent rejection email to %s (booking id %s) - send() returned: %s', self.mail, self.pk, sent)
+            backend = getattr(settings, 'EMAIL_BACKEND', '')
+            if 'console' in backend and request is not None:
+                messages.info(request, f'Rejection email for booking {self.pk} was printed to the server console (console email backend in use).')
+            elif request is not None:
+                messages.success(request, f'Rejection email for booking {self.pk} was sent via configured email backend.')
+        except Exception as e:
+            logger.exception('Failed to send rejection email: %s', e)
+            if request is not None:
+                messages.error(request, f'Failed to send rejection email for booking {self.pk}: {e}')
+            raise
 

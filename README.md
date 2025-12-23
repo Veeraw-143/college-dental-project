@@ -27,5 +27,40 @@ python manage.py makemigrations
 python manage.py migrate
 ```
 
-- Accept a booking via the admin (set status to "Accepted") or use the **Accept selected bookings and notify users** action. Emails will be printed to console in development unless an SMTP backend is configured.
+- Accept a booking via the admin (set status to "Accepted") or use the **Accept selected bookings and notify users** action. Emails will be printed to console in development by default unless you configure an SMTP backend.
+
+SMTP configuration (example):
+
+```bash
+# set these env vars before running the site
+export EMAIL_BACKEND=django.core.mail.backends.smtp.EmailBackend
+export EMAIL_HOST=smtp.example.com
+export EMAIL_PORT=587
+export EMAIL_HOST_USER=your-smtp-user
+export EMAIL_HOST_PASSWORD=your-smtp-password
+export EMAIL_USE_TLS=true
+export DEFAULT_FROM_EMAIL=no-reply@smilecare.example
+```
+
+When `EMAIL_BACKEND` is unset the project uses Django's console email backend which prints email contents to the server console rather than sending them. Set the SMTP env vars above to send real emails in staging/production.
+
+Quick testing helpers:
+
+- Run a local SMTP debug server (prints incoming SMTP traffic) and point Django at it for quick testing:
+
+```bash
+# run in a separate terminal (Python 3)
+python -m smtpd -n -c DebuggingServer localhost:1025
+# then set these env vars for testing
+export EMAIL_BACKEND=django.core.mail.backends.smtp.EmailBackend
+export EMAIL_HOST=localhost
+export EMAIL_PORT=1025
+export EMAIL_USE_TLS=false
+```
+
+- Or use the provided management command to send an email for a specific booking (helpful after configuring SMTP):
+
+```bash
+python manage.py send_booking_email --id 123 --type accept
+```
 
