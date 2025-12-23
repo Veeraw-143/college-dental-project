@@ -123,14 +123,22 @@ STATIC_URL = 'static/'
 STATICFILES_DIRS = [STATIC_DIR]
 MEDIA_URL = 'media/'
 MEDIA_ROOT = MEDIA_DIR
-
+'''
 # Email & notification defaults (console backend for dev). Set these via env vars in production.
 EMAIL_BACKEND = os.environ.get('EMAIL_BACKEND', 'django.core.mail.backends.console.EmailBackend')
-DEFAULT_FROM_EMAIL = os.environ.get('DEFAULT_FROM_EMAIL', 'no-reply@smilecare.example')
+DEFAULT_FROM_EMAIL = os.environ.get('DEFAULT_FROM_EMAIL', 'pulipandi8158@gmail.com')
 SITE_URL = os.environ.get('SITE_URL', 'http://127.0.0.1:8000')
 # Optional Twilio configuration for SMS notifications (leave empty to disable SMS)
 TWILIO_ACCOUNT_SID = os.environ.get('TWILIO_ACCOUNT_SID', '')
 TWILIO_AUTH_TOKEN = os.environ.get('TWILIO_AUTH_TOKEN', '')
 TWILIO_FROM_NUMBER = os.environ.get('TWILIO_FROM_NUMBER', '')
+'''
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+
+EMAIL_HOST_USER = 'pulipandi8158@gmail.com'
+EMAIL_HOST_PASSWORD = 'kovy ruva fjco aiug'
 
 

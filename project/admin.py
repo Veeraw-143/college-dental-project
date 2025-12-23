@@ -94,6 +94,6 @@ class BookingsAdmin(admin.ModelAdmin):
     reject_bookings.short_description = 'Reject selected bookings and notify users'
 
 # Customize the admin site header for a more seamless experience
-admin.site.site_header = "SmileCare Admin"
-admin.site.site_title = "SmileCare Admin Portal"
+admin.site.site_header = "Surabi Dental Care Admin"
+admin.site.site_title = "Surabi Dental Care Admin Portal"
 admin.site.index_title = "Site Administration"
