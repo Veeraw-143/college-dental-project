@@ -1,4 +1,4 @@
-from django.shortcuts import render
+from django.shortcuts import render, get_object_or_404
 from project.models import *
 
 # Create your views here.
@@ -6,8 +6,11 @@ def home(request):
 
     return render(request,'index.html')
 
-from django.http import JsonResponse
+from django.http import JsonResponse, HttpResponse, HttpResponseForbidden
 from datetime import date as _date
+from django.core import signing
+import io
+import json
 
 
 def booking(request):
@@ -47,3 +50,23 @@ def booking(request):
     puli = bookings.objects.all()
     context = {"BookApp": puli}
     return render(request, 'index.html', context)
+
+
+# QR image endpoint (signed token required)
+def booking_qr(request, pk):
+    token = request.GET.get('token')
+    if not token:
+        return HttpResponseForbidden('Missing token')
+    signer = signing.Signer()
+    try:
+        value = signer.unsign(token)
+    except signing.BadSignature:
+        return HttpResponseForbidden('Invalid token')
+    if str(pk) != str(value):
+        return HttpResponseForbidden('Token does not match')
+    b = get_object_or_404(bookings, pk=pk)
+    try:
+        img_bytes = b.generate_qr_bytes(include_url=False)
+    except Exception as e:
+        return HttpResponse(f'Error generating QR: {e}', content_type='text/plain')
+    return HttpResponse(img_bytes, content_type='image/png')
