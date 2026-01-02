@@ -1,0 +1,211 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Surabi Dental Clinic</title>
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <meta name="description" content="Surabi Dental Clinic — expert dental care for the whole family. Book appointments online.">
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    <link rel="icon" type="image/png" href="{% static 'media/logo2.png' %}">
+
+</head>
+<body>
+
+<!-- Header -->
+<header class="header">
+    <div class="header-inner">
+        <div class="logo">
+            <span class="logo-mark">🦷</span>
+            <div>
+                <h1>Surabi</h1>
+                <small>Dental Clinic</small>
+            </div>
+        </div>
+        <p class="tag">Your Smile, Our Priority</p>
+    </div>
+</header>
+
+<!-- Navigation -->
+<nav class="nav" role="navigation" aria-label="Main navigation">
+    <div class="nav-inner">
+        <div class="nav-links">
+            <a href="#" class="nav-link">Home</a>
+            <a href="#services" class="nav-link">Services</a>
+            <a href="#team" class="nav-link">Doctors</a>
+            <a href="#contact" class="nav-link">Contact</a>
+        </div>
+        <div class="nav-actions">
+            <button id="theme-toggle" class="theme-toggle" aria-label="Toggle theme">🌙</button>
+        </div>
+    </div>
+</nav>
+
+<!-- Hero Section -->
+<section class="hero" aria-labelledby="hero-heading">
+    <div class="hero-overlay"></div>
+    <div class="hero-content">
+        <h2 id="hero-heading">Healthy Teeth, Confident Smile</h2>
+        <p class="lead">Advanced dental care with a gentle touch.</p>
+        <div class="hero-ctas">
+            <button class="btn btn-primary" onclick="scrollToAppointment()">Book Appointment</button>
+            <a class="btn btn-outline" href="#services">View Services</a>
+        </div>
+    </div>
+</section>
+
+<!-- Services -->
+<section class="services" id="services">
+    <h2>Our Services</h2>
+    <div class="service-box">
+        <article class="service-card" tabindex="0" data-service="Cleaning">
+            <div class="icon">🦷</div>
+            <h3>Teeth Cleaning</h3>
+            <p>Gentle cleaning to keep your smile bright.</p>
+        </article>
+        <article class="service-card" tabindex="0" data-service="Whitening">
+            <div class="icon">😁</div>
+            <h3>Teeth Whitening</h3>
+            <p>Safe, long-lasting whitening treatments.</p>
+        </article>
+        <article class="service-card" tabindex="0" data-service="Root Canal">
+            <div class="icon">🛠</div>
+            <h3>Root Canal</h3>
+            <p>Modern root canal therapy with comfort care.</p>
+        </article>
+        <article class="service-card" tabindex="0" data-service="Pediatric">
+            <div class="icon">👶</div>
+            <h3>Pediatric Dentistry</h3>
+            <p>Kid-friendly visits with a gentle approach.</p>
+        </article>
+    </div>
+</section>
+
+<!-- Appointment -->
+<section class="appointment" id="appointment" >
+    <div class="appointment-card">
+        <h2>Book an Appointment</h2>
+        <form id="appointment-form" method="POST" action="{% url 'booking' %}">
+            {% csrf_token %}
+            <div class="field">
+                <input type="text" id="name" name="name" placeholder="" required>
+                <label for="name">Patient Name</label>
+                <div class="error" data-for="name" aria-live="polite"></div>
+            </div>
+            <div class="field">
+                <input type="email" id="mail" name="mail" placeholder="" required>
+                <label for="mail">Email Address</label>
+                <div class="error" data-for="mail" aria-live="polite"></div>
+            </div>
+            <div class="field">
+                <input type="tel" id="mobile" name="mobile" placeholder="" required>
+                <label for="mobile">Mobile Number</label>
+                <div class="error" data-for="mobile" aria-live="polite"></div>
+            </div>
+            <div class="field">
+                <input type="date" id="date" name="date" required>
+                <label for="date">Preferred Date</label>
+                <div class="error" data-for="date" aria-live="polite"></div>
+            </div>
+             <div class="field">
+                <input type="time" id="time" name="time" placeholder="" required>
+                <label for="time">Preferred Time</label>
+                <div class="error" data-for="time" min="12:00" max="21:00"aria-live="polite"></div>
+            </div>
+            <div class="form-actions">
+                <button type="submit" class="btn btn-primary">Submit</button>
+            </div>
+            <div id="form-feedback" class="form-feedback" role="status" aria-live="polite"></div>
+            {% if error %}
+              <div class="form-feedback error-server" role="alert">{{ error }}</div>
+            {% endif %}
+            {% if success %}
+              <div class="form-feedback success-server" role="status">{{ success }}</div>
+            {% endif %}
+        </form>
+    </div>
+</section>
+
+<!-- Testimonials -->
+<section class="testimonials reveal" id="testimonials" aria-labelledby="testimonials-heading">
+  <div class="container">
+    <h2 id="testimonials-heading">What our patients say</h2>
+    <div class="testimonials-grid">
+      <blockquote class="testimonial">
+        <p>"The staff made my visit comfortable and quick — highly recommend!"</p>
+        <cite>— Asha P.</cite>
+      </blockquote>
+      <blockquote class="testimonial">
+        <p>"Great results from whitening. Friendly service and clear pricing."</p>
+        <cite>— Rohit S.</cite>
+      </blockquote>
+      <blockquote class="testimonial">
+        <p>"My kids loved the pediatric dentist — no fear at all."</p>
+        <cite>— Meera K.</cite>
+      </blockquote>
+    </div>
+  </div>
+</section>
+
+<!-- Team -->
+<section class="team reveal" id="team" aria-labelledby="team-heading">
+  <div class="container">
+    <h2 id="team-heading">Meet our team</h2>
+    <div class="team-grid">
+      <article class="team-member">
+        <img src="{% static 'media/doc1.jpg' %}" alt="Dr. Priya - Lead Dentist">
+        <h4>Dr. Adithya</h4>
+        <p>Lead Dentist • Cosmetic & General Dentistry</p>
+      </article>
+      <article class="team-member">
+        <img src="{% static 'media/doc2.jpg' %}" alt="Dr. Marco - Orthodontist">
+        <h4>Dr. Marco Thomas</h4>
+        <p>Orthodontist • Braces & Alignment</p>
+      </article>
+      <article class="team-member">
+        <img src="{% static 'media/doc3.webp' %}" alt="Nurse Sita - Child Specialist">
+        <h4>Sita R.</h4>
+        <p>Pediatric Nurse • Child Care Specialist</p>
+      </article>
+    </div>
+  </div>
+</section>
+
+<!-- Contact -->
+<section id="contact" class="contact reveal" aria-labelledby="contact-heading">
+  <div class="container">
+    <h2 id="contact-heading">Contact & Location</h2>
+    <div class="contact-grid">
+      <div class="contact-info">
+        <p><strong>Address:</strong> No 105-C5, Shanmuga Rice Mill, Near Tmb Atm, Sivakasi Road, Rajaji Road, Srivilliputtur-626125, Tamil Nadu</p>
+        <p><strong>Phone:</strong> +91 90425 58720</p>
+        <p><strong>Email:</strong> Surabidentalclinic@gmail.com</p>
+      </div>
+      <div class="contact-map">
+        <!-- Placeholder map (replace with embed later) -->
+        <div class="map-placeholder"><iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3934.962943635982!2d77.63336217478697!3d9.51194909056995!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3b06ddfa335b1d11%3A0x519abd5bb68e9cac!2sSurabi%20Dental%20Clinic!5e0!3m2!1sen!2sin!4v1766652184094!5m2!1sen!2sin" width="500" height="260px" style="border:0;" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Footer -->
+<footer class="footer">
+    <p>© 2025 Surabi Dental Clinic | All Rights Reserved</p>
+</footer>
+
+<!-- Modal -->
+<div id="modal" class="modal" aria-hidden="true" role="dialog" aria-modal="true">
+    <div class="modal-content">
+        <button class="modal-close" aria-label="Close">&times;</button>
+        <h3 id="modal-title">Appointment Submitted</h3>
+        <p id="modal-message">We have received your request and will contact you shortly.</p>
+        <div class="modal-actions">
+            <button class="btn btn-primary" id="modal-ok">OK</button>
+        </div>
+    </div>
+</div>
+
+<script src="{% static 'js/script.js' %}"></script>
+</body>
+</html>
