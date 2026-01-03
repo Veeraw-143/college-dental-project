@@ -65,9 +65,23 @@ body{
   inset: 0;
   background-image: url("/static/media/bg.png");
   background-size: cover;
-  background-position: center center;
+  background-position: center;
   background-repeat: no-repeat;
-  transform: scale(1.02); /* prevents edge gaps */
+  animation: heroBgSlide 10s infinite alternate ease-in-out;
+}
+
+@keyframes heroBgSlide {
+  0% {
+    background-image: url("/static/media/bg.png");
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+  100% {
+    background-image: url("/static/media/bg2.webp");
+    transform: scale(1);
+  }
 }
 
 /* Dark overlay for text readability */
@@ -90,9 +104,63 @@ body{
   padding: 56px;
   color: white;
   max-width: 720px;
+  transform: translateX(-18px);
+  opacity: 0;
+  animation: slideInLeft .72s cubic-bezier(.2,.9,.3,1) 0.1s forwards;
 }
 .hero h2{font-size:36px;margin-bottom:10px;text-shadow:0 6px 18px rgba(8,20,29,0.4)}
 .hero .lead{opacity:0.95;margin-bottom:18px}
+
+/* Decorative / hero image on the right that slides in */
+.hero-media {
+  position: absolute;
+  right: 36px;
+  top: 50%;
+  transform: translateY(-50%) translateX(18px);
+  width: 46%;
+  max-width: 520px;
+  z-index: 3;
+  opacity: 0;
+  pointer-events: none;
+  transition: transform .6s ease, opacity .6s ease;
+}
+.hero-media img {
+  display:block;
+  width:100%;
+  height:auto;
+  border-radius:12px;
+  box-shadow: 0 18px 40px rgba(2,6,23,0.18);
+  transform: translateX(12px);
+  animation: slideInRight .72s cubic-bezier(.2,.9,.3,1) 0.18s forwards;
+  transition: transform 0.8s ease, box-shadow 0.8s ease;
+}
+
+.hero:hover .hero-media img {
+  transform: scale(1.05) rotate(1deg);
+  box-shadow: 0 30px 60px rgba(0,0,0,0.25);
+}
+
+/* Slide keyframes */
+@keyframes slideInLeft {
+  from { transform: translateX(-18px); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
+}
+@keyframes slideInRight {
+  from { transform: translateX(18px); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
+}
+
+/* On smaller screens hide the media and center content */
+@media (max-width: 920px) {
+  .hero-media { display:none; }
+  .hero { min-height: 360px; }
+  .hero-content { padding: 36px; max-width: 100%; }
+}
+
+/* Respect user's reduced motion preference */
+@media (prefers-reduced-motion: reduce) {
+  .hero-content, .hero-media img { animation: none !important; transition: none !important; transform: none !important; opacity: 1 !important; }
+}
 .btn{display:inline-block;padding:10px 16px;border-radius:10px;text-decoration:none;border:none;cursor:pointer}
 .btn-primary{background:linear-gradient(90deg,var(--accent),var(--accent-2));color:white;box-shadow:0 8px 30px rgba(43,154,163,0.18);transition:transform .14s ease}
 .btn-outline{background:rgba(255,255,255,0.12);color:#fff;border:1px solid rgba(255,255,255,0.12)}
