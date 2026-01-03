@@ -111,11 +111,28 @@
                 <label for="date">Preferred Date</label>
                 <div class="error" data-for="date" aria-live="polite"></div>
             </div>
-             <div class="field">
+             <!--<div class="field">
                 <input type="time" id="time" name="time" placeholder="" required>
                 <label for="time">Preferred Time</label>
                 <div class="error" data-for="time" min="12:00" max="21:00"aria-live="polite"></div>
+            </div>-->
+            <h3>Select Time</h3>
+
+            <div class="slot-grid" id="slot-grid">
+            {% for slot in time_slots %}
+              {% if slot in booked_slots %}
+                <button type="button" class="slot disabled" disabled>{{ slot }}</button>
+              {% else %}
+                <button type="submit"
+                        class="slot"
+                        name="time_slot"
+                        value="{{ slot }}">
+                    {{ slot }}
+                </button>
+              {% endif %}
+            {% endfor %}
             </div>
+
             <div class="form-actions">
                 <button type="submit" class="btn btn-primary">Submit</button>
             </div>

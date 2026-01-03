@@ -205,7 +205,7 @@ body{
   }
 
 /* Time Input Styling */
-input[type="time"]{
+/*input[type="time"]{
   font-size:16px;
   font-weight:500;
   color:var(--accent-2);
@@ -244,6 +244,105 @@ input[type="time"]::-webkit-datetime-edit-minute-field{
 input[type="time"]::-webkit-datetime-edit-hour-field:hover,
 input[type="time"]::-webkit-datetime-edit-minute-field:hover{
   background:linear-gradient(to bottom,rgba(47,164,169,0.12),rgba(47,164,169,0.08));
+}*/
+
+.slot-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
+  gap: 10px;
+  margin-top: 10px;
+  margin-bottom: 16px;
+}
+
+.slot {
+  padding: 10px 12px;
+  border-radius: 8px;
+  border: 1px solid var(--accent);
+  background: linear-gradient(135deg, rgba(47,164,169,0.08), rgba(47,164,169,0.04));
+  color: var(--accent-2);
+  cursor: pointer;
+  font-weight: 500;
+  transition: all .2s ease;
+}
+
+.slot:hover:not(:disabled) {
+  background: linear-gradient(135deg, rgba(47,164,169,0.16), rgba(47,164,169,0.08));
+  border-color: var(--accent-2);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(47,164,169,0.12);
+}
+
+.slot:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.slot.selected:not(:disabled) {
+  background: linear-gradient(135deg, var(--accent), var(--accent-2));
+  color: white;
+  border-color: var(--accent-2);
+  box-shadow: 0 6px 20px rgba(47,164,169,0.25);
+  transform: translateY(-3px);
+  font-weight: 600;
+}
+
+.slot.disabled,
+.slot:disabled {
+  background: linear-gradient(135deg, #f3f4f6, #e5e7eb);
+  color: #9ca3af;
+  border-color: #d1d5db;
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+/* Expired slots (time has passed) */
+.slot.expired {
+  background: linear-gradient(135deg, #fecaca, #fca5a5);
+  color: #991b1b;
+  border-color: #fca5a5;
+  cursor: not-allowed;
+  opacity: 0.7;
+  text-decoration: line-through;
+  font-size: 0.95em;
+}
+
+/* Dark theme for slots */
+body.dark .slot {
+  background: linear-gradient(135deg, rgba(47,164,169,0.12), rgba(47,164,169,0.06));
+  color: var(--accent-2);
+  border-color: rgba(47,164,169,0.2);
+}
+
+body.dark .slot:hover:not(:disabled) {
+  background: linear-gradient(135deg, rgba(47,164,169,0.2), rgba(47,164,169,0.12));
+  border-color: var(--accent);
+}
+
+body.dark .slot.selected:not(:disabled) {
+  background: linear-gradient(135deg, var(--accent), var(--accent-2));
+  color: white;
+  border-color: var(--accent-2);
+  box-shadow: 0 6px 20px rgba(79,211,199,0.35);
+  transform: translateY(-3px);
+  font-weight: 600;
+}
+
+body.dark .slot.disabled,
+body.dark .slot:disabled {
+  background: linear-gradient(135deg, #374151, #1f2937);
+  color: #6b7280;
+  border-color: #4b5563;
+  opacity: 0.5;
+}
+
+/* Dark mode expired slots */
+body.dark .slot.expired {
+  background: linear-gradient(135deg, #dc2626, #b91c1c);
+  color: #fee2e2;
+  border-color: #dc2626;
+  cursor: not-allowed;
+  opacity: 0.75;
+  text-decoration: line-through;
+  font-size: 0.95em;
 }
 
 /* Dark theme time input */

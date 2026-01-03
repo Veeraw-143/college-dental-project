@@ -10,6 +10,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const formFeedback = document.getElementById('form-feedback');
   const serviceCards = document.querySelectorAll('.service-card');
   const dateInput = document.getElementById('date');
+  const slotGrid = document.getElementById('slot-grid');
 
   // Set min date to today
   if (dateInput) {
@@ -140,7 +141,7 @@ setInterval(() => {
       mail: form.mail.value.trim(),
       mobile: form.mobile.value.trim(),
       date: form.date.value,
-      time: form.time.value
+      time_slot: selectedSlot || '' // Use selectedSlot variable
     };
 
     const errors = validate(data);
@@ -201,7 +202,7 @@ setInterval(() => {
     }
   });
 
-  function validate({name, mail, mobile, date, time}){
+  function validate({name, mail, mobile, date, time_slot}){
     const errors = {};
     if (!name || name.length < 2) errors.name = 'Enter a valid name (min 2 chars)';
     if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(mail)) errors.mail = 'Provide a valid email';
@@ -211,7 +212,7 @@ setInterval(() => {
       const today = new Date().toISOString().split('T')[0];
       if (date < today) errors.date = 'Date cannot be in the past';
     }
-    if (!time) errors.time = 'Select a time';
+    if (!time_slot) errors.time_slot = 'Select a time slot';
     return errors;
   }
 
@@ -233,9 +234,183 @@ setInterval(() => {
   const mobileInput = document.getElementById('mobile');
   mobileInput?.addEventListener('input', (e)=>{
     const cleaned = e.target.value.replace(/[^0-9+]/g, '');
-    // simple groups: +CC (optional) then groups of 3-4
     e.target.value = cleaned;
   });
+
+  // ALL TIME SLOTS
+  const ALL_SLOTS = [
+    "09:00 AM","09:15 AM","09:30 AM","09:45 AM",
+    "10:00 AM","10:15 AM","10:30 AM","10:45 AM",
+    "11:00 AM","11:15 AM","11:30 AM","11:45 AM",
+    "02:00 PM","02:15 PM","02:30 PM","02:45 PM",
+    "03:00 PM","03:15 PM","03:30 PM","03:45 PM",
+    "04:00 PM","04:15 PM","04:30 PM","04:45 PM"
+  ];
+
+  // Load slots for a specific date
+  async function loadSlotsForDate(date) {
+    if (!date) return;
+    
+    try {
+      const response = await fetch(`/api/booked-slots/?date=${date}`);
+      if (!response.ok) {
+        console.error('Failed to fetch booked slots');
+        updateSlotGrid(ALL_SLOTS, [], null, false);
+        return;
+      }
+      const data = await response.json();
+      updateSlotGrid(ALL_SLOTS, data.booked_slots || [], data.current_time, data.is_today);
+    } catch (err) {
+      console.error('Error fetching booked slots:', err);
+      updateSlotGrid(ALL_SLOTS, [], null, false);
+    }
+  }
+
+  // Initialize slots on page load
+  function initializeSlots() {
+    if (dateInput && dateInput.value) {
+      loadSlotsForDate(dateInput.value);
+    } else if (dateInput) {
+      const today = new Date().toISOString().split('T')[0];
+      dateInput.value = today;
+      dateInput.setAttribute('min', today);
+      loadSlotsForDate(today);
+    }
+  }
+
+  // Initialize slots on page load
+  initializeSlots();
+
+  // Load slots dynamically when date changes
+  dateInput?.addEventListener('change', async (e) => {
+    const selectedDate = e.target.value;
+    if (!selectedDate) return;
+    
+    try {
+      const response = await fetch(`/api/booked-slots/?date=${selectedDate}`);
+      if (!response.ok) {
+        console.error('Failed to fetch booked slots');
+        return;
+      }
+      const data = await response.json();
+      // Pass both booked slots and time info to updateSlotGrid
+      updateSlotGrid(ALL_SLOTS, data.booked_slots || [], data.current_time, data.is_today);
+    } catch (err) {
+      console.error('Error fetching booked slots:', err);
+    }
+  });
+
+  // Track selected slot
+  let selectedSlot = null;
+
+  // Helper function to check if a slot time is in the past
+  function isSlotInPast(slotString, currentTimeString) {
+    try {
+      // Parse slot time (e.g., "09:00 AM" to minutes)
+      const slotParts = slotString.match(/(\d+):(\d+)\s(AM|PM)/);
+      if (!slotParts) return false;
+      
+      let slotHour = parseInt(slotParts[1]);
+      const slotMin = parseInt(slotParts[2]);
+      const slotPeriod = slotParts[3];
+      
+      // Convert to 24-hour format
+      if (slotPeriod === 'PM' && slotHour !== 12) slotHour += 12;
+      if (slotPeriod === 'AM' && slotHour === 12) slotHour = 0;
+      
+      const slotTotalMin = slotHour * 60 + slotMin;
+      
+      // Parse current time (e.g., "02:30 PM")
+      const currentParts = currentTimeString.match(/(\d+):(\d+)\s(AM|PM)/);
+      if (!currentParts) return false;
+      
+      let currentHour = parseInt(currentParts[1]);
+      const currentMin = parseInt(currentParts[2]);
+      const currentPeriod = currentParts[3];
+      
+      // Convert to 24-hour format
+      if (currentPeriod === 'PM' && currentHour !== 12) currentHour += 12;
+      if (currentPeriod === 'AM' && currentHour === 12) currentHour = 0;
+      
+      const currentTotalMin = currentHour * 60 + currentMin;
+      
+      return slotTotalMin < currentTotalMin;
+    } catch (err) {
+      console.error('Error parsing time:', err);
+      return false;
+    }
+  }
+
+  // Update the slot grid with available/booked slots
+  function updateSlotGrid(allSlots, bookedSlots, currentTime = null, isToday = false) {
+    if (!slotGrid) return;
+    
+    slotGrid.innerHTML = '';
+    selectedSlot = null; // Reset selection when slots update
+    
+    allSlots.forEach(slot => {
+      const isBooked = bookedSlots.includes(slot);
+      const isExpired = isToday && currentTime && isSlotInPast(slot, currentTime);
+      const button = document.createElement('button');
+      
+      button.type = 'button';
+      let className = 'slot';
+      if (isBooked) className += ' disabled';
+      if (isExpired) className += ' expired';
+      button.className = className;
+      button.textContent = slot;
+      
+      // Set aria-label based on state
+      let ariaLabel = slot;
+      if (isBooked) ariaLabel += ' (booked)';
+      if (isExpired) ariaLabel += ' (time passed)';
+      if (!isBooked && !isExpired) ariaLabel += ' (available)';
+      button.setAttribute('aria-label', ariaLabel);
+      
+      // Disable if booked or expired
+      if (isBooked || isExpired) {
+        button.disabled = true;
+      } else {
+        // Add click handler for available slots
+        button.addEventListener('click', (e) => {
+          e.preventDefault();
+          selectSlot(button, slot);
+        });
+      }
+      
+      slotGrid.appendChild(button);
+    });
+  }
+
+  // Handle slot selection
+  function selectSlot(button, slot) {
+    // Remove previous selection
+    const prevSelected = slotGrid.querySelector('.slot.selected');
+    if (prevSelected) {
+      prevSelected.classList.remove('selected');
+    }
+    
+    // Add selection to current slot
+    button.classList.add('selected');
+    selectedSlot = slot;
+    
+    // Update hidden form field with selected slot
+    const hiddenInput = document.createElement('input');
+    hiddenInput.type = 'hidden';
+    hiddenInput.name = 'time_slot';
+    hiddenInput.value = slot;
+    
+    // Remove any existing hidden time_slot input
+    const existingInput = form.querySelector('input[type="hidden"][name="time_slot"]');
+    if (existingInput) {
+      existingInput.remove();
+    }
+    
+    // Add new hidden input to form
+    form.appendChild(hiddenInput);
+    
+    console.log('Selected slot:', slot);
+  }
 
   // tiny scrollspy to highlight nav
   const navLinks = document.querySelectorAll('.nav-link');

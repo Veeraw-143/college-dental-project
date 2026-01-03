@@ -19,6 +19,7 @@ except Exception:
 
 # Create your models here.
 class bookings(models.Model):
+    id = models.AutoField(primary_key=True)
     Name = models.CharField(max_length=50)
     mail = models.EmailField()
     mobile = models.CharField(
@@ -45,7 +46,7 @@ class bookings(models.Model):
         ordering = ['-created_at']
 
     def __str__(self):
-        return self.Name
+        return f"{self.Name} - {self.appointment_date} {self.get_time_12hr()}"
 
     def generate_qr_bytes(self, include_url=True):
         """Generate a PNG image (bytes) for this booking's QR code.
