@@ -24,7 +24,7 @@ class bookings(models.Model):
     mail = models.EmailField()
     mobile = models.CharField(
         max_length=15,
-        validators=[RegexValidator(regex=r'^\+?[0-9]{7,15}$', message='Enter a valid phone number')]
+        validators=[RegexValidator(regex=r'^\+?[0-9]{10,12}$', message='Enter a valid phone number')]
     )
     appointment_date = models.DateField(null=True, blank=True)
     time = models.TimeField(null=True, blank=True)
@@ -82,7 +82,7 @@ class bookings(models.Model):
         """
         # Prepare email
         subject = 'Your appointment is confirmed — Surabi Dental Care'
-        message = f'Hello {self.Name},\n\nYour appointment on {self.appointment_date} has been accepted. Attached is a QR code for your appointment.\n\nThank you,\nSurabi Dental Care Team'
+        message = f'Hello {self.Name},\n\nYour appointment on {self.appointment_date} at {self.time} has been accepted. Attached is a QR code for your appointment.\n\nThank you,\nSurabi Dental Care Team'
         from_email = getattr(settings, 'DEFAULT_FROM_EMAIL', 'pulipandi8158@gmail.com')
         # Ensure we have a valid recipient
         recipient = (self.mail or '').strip()

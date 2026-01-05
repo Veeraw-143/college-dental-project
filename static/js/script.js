@@ -22,12 +22,11 @@ document.addEventListener('DOMContentLoaded', () => {
 const hero = document.querySelector('.hero-overlay');
 
 setInterval(() => {
-  slide = (slide + 1) % 2;
+  slide = (slide + 2) % 2;
   hero.style.backgroundImage = slide === 0
     ? "url('/static/media/bg.png')"
     : "url('/static/media/bg2.webp')";
 }, 5000);
-
 
   // Floating label support: keep label lifted when field has value
   document.querySelectorAll('.field input[type="text"], .field input[type="email"], .field input[type="tel"], .field input[type="date"]').forEach(input => {
