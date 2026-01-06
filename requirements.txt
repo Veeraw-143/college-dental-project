@@ -1,3 +1,7 @@
 django
 qrcode[pil]
 pillow
+django-jazzmin 
+plotly 
+pandas 
+numpy 

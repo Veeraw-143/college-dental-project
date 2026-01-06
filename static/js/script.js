@@ -92,13 +92,22 @@ setInterval(() => {
 
   function showServiceDetail(card){
     const title = card.querySelector('h3')?.textContent || 'Service';
-    showModal(title, card.querySelector('p')?.textContent || 'Details coming soon.');
+    const description = card.querySelector('.service-description')?.innerHTML || 'Details coming soon.';
+    showServiceModal(title, description);
   }
 
   // Modal helpers (animated)
   function showModal(title, message){
     document.getElementById('modal-title').textContent = title;
     document.getElementById('modal-message').textContent = message;
+    modal.setAttribute('aria-hidden', 'false');
+    modal.classList.add('open');
+    // focus after the opening animation starts
+    setTimeout(()=> modalOk.focus(), 180);
+  }
+  function showServiceModal(title, description){
+    document.getElementById('modal-title').textContent = title;
+    document.getElementById('modal-message').innerHTML = description;
     modal.setAttribute('aria-hidden', 'false');
     modal.classList.add('open');
     // focus after the opening animation starts
