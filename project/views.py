@@ -1,5 +1,8 @@
 from django.shortcuts import render, get_object_or_404
 from project.models import *
+import logging
+
+logger = logging.getLogger(__name__)
 
 # Create your views here.
 def home(request):
@@ -77,15 +80,28 @@ def booking(request):
             return render(request, 'index.html', payload)
 
         # Save booking
-        bookings.objects.create(
-            Name=name,
-            mail=mail,
-            mobile=mobile,
-            appointment_date=appt_date,
-            time=time_obj
-        )
+        try:
+            new_booking = bookings.objects.create(
+                Name=name,
+                mail=mail,
+                mobile=mobile,
+                appointment_date=appt_date,
+                time=time_obj
+            )
+            
+            # Send notification to admin about new booking
+            try:
+                new_booking.send_admin_notification(request=request)
+            except Exception as e:
+                logger.warning('Failed to send admin notification for booking %s: %s', new_booking.pk, e)
+        except Exception as e:
+            logger.error('Failed to create booking: %s', e)
+            payload = {'success': False, 'error': 'Failed to create appointment. Please try again.'}
+            if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+                return JsonResponse(payload)
+            return render(request, 'index.html', payload)
 
-        payload = {'success': True, 'message': 'Appointment booked successfully!'}
+        payload = {'success': True, 'message': 'Appointment booked successfully! Admin will confirm your booking soon.'}
         if request.headers.get('x-requested-with') == 'XMLHttpRequest':
             return JsonResponse(payload)
 
@@ -117,24 +133,41 @@ def booking(request):
 
 
 
-# QR image endpoint (signed token required)
+# Greeting card view (signed token required)
 def booking_qr(request, pk):
-    token = request.GET.get('token')
-    if not token:
-        return HttpResponseForbidden('Missing token')
-    signer = signing.Signer()
     try:
-        value = signer.unsign(token)
-    except signing.BadSignature:
-        return HttpResponseForbidden('Invalid token')
-    if str(pk) != str(value):
-        return HttpResponseForbidden('Token does not match')
-    b = get_object_or_404(bookings, pk=pk)
-    try:
-        img_bytes = b.generate_qr_bytes(include_url=False)
+        token = request.GET.get('token')
+        if not token:
+            return HttpResponseForbidden('Error: Missing security token. Cannot access greeting card.')
+        
+        signer = signing.Signer()
+        try:
+            value = signer.unsign(token)
+        except signing.BadSignature:
+            logger.warning('Invalid token attempt for booking %s', pk)
+            return HttpResponseForbidden('Error: Invalid security token. Cannot access greeting card.')
+        
+        if str(pk) != str(value):
+            logger.warning('Token mismatch for booking %s', pk)
+            return HttpResponseForbidden('Error: Security token does not match. Cannot access greeting card.')
+        
+        b = get_object_or_404(bookings, pk=pk)
+        
+        # Prepare context with booking details
+        context = {
+            'booking': b,
+            'name': b.Name,
+            'date': b.appointment_date,
+            'time': b.get_time_12hr(),
+            'clinic_location': 'Surabi Dental Care, Clinic Address',
+            'clinic_phone': '+91-XXXXXXXXXX',
+            'booking_id': b.pk,
+        }
+        
+        return render(request, 'greeting_card.html', context)
     except Exception as e:
-        return HttpResponse(f'Error generating QR: {e}', content_type='text/plain')
-    return HttpResponse(img_bytes, content_type='image/png')
+        logger.error('Error in booking_qr view: %s', e)
+        return HttpResponse('Error: Something went wrong. Please try again.', status=500)
 
 
 def get_booked_slots(request):

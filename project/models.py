@@ -50,31 +50,54 @@ class bookings(models.Model):
 
     def generate_qr_bytes(self, include_url=True):
         """Generate a PNG image (bytes) for this booking's QR code.
-        The QR encodes a signed token containing the booking id and a small summary.
+        The QR encodes the direct URL to the greeting card.
         """
         if qrcode is None:
             raise RuntimeError('qrcode and pillow packages are required to generate QR codes (pip install qrcode[pil] pillow)')
-        payload = {
-            'id': self.pk,
-            'name': self.Name,
-            'date': str(self.appointment_date)
-        }
+        
         signer = signing.Signer()
         token = signer.sign(str(self.pk))
-        if include_url:
-            site = getattr(settings, 'SITE_URL', None)
-            if site:
-                path = reverse('booking_qr', args=[self.pk])
-                payload['qr_url'] = site.rstrip('/') + f'{path}?token={token}'
-            else:
-                payload['token'] = token
-        # encode payload as JSON inside QR
-        data = json.dumps(payload)
-        img = qrcode.make(data)
+        
+        # Encode the direct URL in QR code for mobile scanning
+        site = getattr(settings, 'SITE_URL', None)
+        if site:
+            path = reverse('booking_qr', args=[self.pk])
+            qr_url = site.rstrip('/') + f'{path}?token={token}'
+        else:
+            path = reverse('booking_qr', args=[self.pk])
+            qr_url = f'http://127.0.0.1:8000{path}?token={token}'
+        
+        # Encode URL directly in QR so mobile scanner opens it automatically
+        img = qrcode.make(qr_url)
         buf = io.BytesIO()
         img.save(buf, format='PNG')
         buf.seek(0)
         return buf.getvalue()
+
+    def send_admin_notification(self, request=None):
+        """Send notification email to admin about new booking."""
+        subject = f'New Appointment Request - {self.Name} on {self.appointment_date}'
+        message = (
+            f'New Appointment Booking Received:\n\n'
+            f'Patient Name: {self.Name}\n'
+            f'Email: {self.mail}\n'
+            f'Phone: {self.mobile}\n'
+            f'Appointment Date: {self.appointment_date}\n'
+            f'Appointment Time: {self.get_time_12hr()}\n\n'
+            f'Please review and accept/reject this booking in the admin panel.\n\n'
+            f'Surabi Dental Care Admin'
+        )
+        from_email = getattr(settings, 'DEFAULT_FROM_EMAIL', 'pulipandi8158@gmail.com')
+        admin_email = getattr(settings, 'DEFAULT_FROM_EMAIL', 'pulipandi8158@gmail.com')
+        to = [admin_email]
+
+        try:
+            email = EmailMessage(subject=subject, body=message, from_email=from_email, to=to)
+            sent = email.send(fail_silently=False)
+            logger.info('Sent admin notification for booking %s (patient: %s)', self.pk, self.Name)
+        except Exception as e:
+            logger.exception('Failed to send admin notification: %s', e)
+            raise
 
     def send_qr_and_notify(self, request=None, sms_enabled=False):
         """Send the QR code to the user's email and optionally SMS (if configured).
