@@ -4,11 +4,27 @@
 <head>
     <meta charset="UTF-8">
     <title>Surabi Dental Clinic</title>
-    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, minimum-scale=1, maximum-scale=5, user-scalable=yes">
     <meta name="description" content="Surabi Dental Clinic — expert dental care for the whole family. Book appointments online.">
+    <meta name="theme-color" content="#2fa4a9">
+    <meta name="color-scheme" content="light dark">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <link rel="stylesheet" href="{% static 'css/style.css' %}">
     <link rel="icon" type="image/png" href="{% static 'media/logo2.png' %}">
-
+    <style>
+        /* Prevent layout shift from scrollbar */
+        html {
+            overflow-y: scroll;
+        }
+        /* Safe area for notched devices */
+        @supports (padding: max(0px)) {
+            body {
+                padding-left: max(0px, env(safe-area-inset-left));
+                padding-right: max(0px, env(safe-area-inset-right));
+            }
+        }
+    </style>
 </head>
 <body>
 
@@ -363,14 +379,14 @@
                         <span class="contact-icon">📞</span>
                         <div>
                             <p><strong>Phone</strong></p>
-                            <p><a href="tel:+919042558720">+91 90425 58720</a></p>
+                            <p><a href="tel:+918778392763">+91 87783 92763</a></p>
                         </div>
                     </div>
                     <div class="contact-item">
                         <span class="contact-icon">✉️</span>
                         <div>
                             <p><strong>Email</strong></p>
-                            <p><a href="mailto:Surabidentalclinic@gmail.com">Surabidentalclinic@gmail.com</a></p>
+                            <p><a href="mailto:pulipandi8158@gmail.com">pulipandi8158@gmail.com</a></p>
                         </div>
                     </div>
                 </div>
@@ -389,7 +405,7 @@
                     <p><strong>Clinic Hours</strong></p>
                     <p>Mon - Sat: 9:00 AM - 5:00 PM</p>
                     <p>Sunday: 10:00 AM - 2:00 PM</p>
-                    <p class="emergency">24/7 Emergency: +91 90425 58720</p>
+                    <p class="emergency">24/7 Emergency: +91 87783 92763</p>
                 </div>
             </div>
         </div>

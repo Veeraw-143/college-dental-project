@@ -18,15 +18,32 @@ document.addEventListener('DOMContentLoaded', () => {
     dateInput.setAttribute('min', today);
   }
 
-  let slide = 0;
-const hero = document.querySelector('.hero-overlay');
+  // Initialize theme based on system preference or saved preference
+  function initializeTheme() {
+    const savedTheme = localStorage.getItem('theme');
+    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+    
+    if (savedTheme) {
+      document.body.classList.toggle('dark', savedTheme === 'dark');
+    } else if (prefersDark) {
+      document.body.classList.add('dark');
+      localStorage.setItem('theme', 'dark');
+    } else {
+      document.body.classList.remove('dark');
+      localStorage.setItem('theme', 'light');
+    }
+    updateThemeButton();
+  }
 
-setInterval(() => {
-  slide = (slide + 2) % 2;
-  hero.style.backgroundImage = slide === 0
-    ? "url('/static/media/bg.png')"
-    : "url('/static/media/bg2.webp')";
-}, 5000);
+  let slide = 0;
+  const hero = document.querySelector('.hero-overlay');
+
+  setInterval(() => {
+    slide = (slide + 2) % 2;
+    hero.style.backgroundImage = slide === 0
+      ? "url('/static/media/bg.png')"
+      : "url('/static/media/bg2.webp')";
+  }, 5000);
 
   // Floating label support: keep label lifted when field has value
   document.querySelectorAll('.field input[type="text"], .field input[type="email"], .field input[type="tel"], .field input[type="date"]').forEach(input => {
@@ -45,9 +62,16 @@ setInterval(() => {
   });
 
   // Theme management
-  const savedTheme = localStorage.getItem('theme');
-  if (savedTheme === 'dark') document.body.classList.add('dark');
-  updateThemeButton();
+  initializeTheme();
+  
+  // Listen for system theme changes
+  window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e) => {
+    if (!localStorage.getItem('theme')) {
+      document.body.classList.toggle('dark', e.matches);
+      updateThemeButton();
+    }
+  });
+  
   themeToggle?.addEventListener('click', () => {
     document.body.classList.toggle('dark');
     localStorage.setItem('theme', document.body.classList.contains('dark') ? 'dark' : 'light');
@@ -57,26 +81,7 @@ setInterval(() => {
   function updateThemeButton(){
     if(!themeToggle) return;
     themeToggle.textContent = document.body.classList.contains('dark') ? '☀️' : '🌙';
-  }
-
-  // Smooth scroll helper used by inline onclick
-  window.scrollToAppointment = () => document.getElementById('appointment').scrollIntoView({behavior:'smooth'});
-
-  // Reveal-on-scroll using IntersectionObserver
-  const revealEls = document.querySelectorAll('.reveal');
-  if ('IntersectionObserver' in window && revealEls.length) {
-    const obs = new IntersectionObserver((entries)=>{
-      entries.forEach(e=>{
-        if(e.isIntersecting){
-          e.target.classList.add('in-view');
-          obs.unobserve(e.target);
-        }
-      });
-    },{threshold:0.08});
-    revealEls.forEach(el=>obs.observe(el));
-  } else { // fallback
-    revealEls.forEach(el=>el.classList.add('in-view'));
-  }
+    themeToggle.setAttribute('aria-label', document.body.classList.contains('dark') ? 'Switch to light mode' : 'Switch to dark mode');
 
   // Helper: read cookie (for CSRF)
   function getCookie(name){

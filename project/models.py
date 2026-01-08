@@ -11,10 +11,12 @@ from django.contrib import messages
 
 logger = logging.getLogger(__name__)
 
+# Import qrcode and PIL at module level to ensure they're available
 try:
     import qrcode
     from PIL import Image
-except Exception:
+except ImportError as e:
+    logger.error('Failed to import qrcode or PIL: %s. Please install them with: pip install qrcode[pil] pillow', e)
     qrcode = None
 
 # Create your models here.
@@ -112,7 +114,10 @@ class bookings(models.Model):
         if not recipient:
             logger.error('Attempted to send appointment email but booking %s has no email address', self.pk)
             if request is not None:
-                messages.error(request, f'Cannot send email for booking {self.pk}: no email address provided')
+                try:
+                    messages.error(request, f'Cannot send email for booking {self.pk}: no email address provided')
+                except Exception:
+                    pass
             raise ValueError('Booking has no email address')
         to = [recipient]
 
@@ -135,15 +140,24 @@ class bookings(models.Model):
             if 'console' in backend:
                 logger.info('Console email backend is configured; email was printed to the server console')
                 if request is not None:
-                    messages.info(request, f'Email for booking {self.pk} was printed to the server console (console email backend in use).')
+                    try:
+                        messages.info(request, f'Email for booking {self.pk} was printed to the server console (console email backend in use).')
+                    except Exception:
+                        pass
             else:
                 if request is not None:
-                    messages.success(request, f'Email for booking {self.pk} was sent via configured email backend.')
+                    try:
+                        messages.success(request, f'Email for booking {self.pk} was sent via configured email backend.')
+                    except Exception:
+                        pass
         except Exception as e:
             logger.exception('Failed to send appointment email: %s', e)
             # If request provided, show a helpful admin error
             if request is not None:
-                messages.error(request, f'Failed to send appointment email for booking {self.pk}: {e}')
+                try:
+                    messages.error(request, f'Failed to send appointment email for booking {self.pk}: {e}')
+                except Exception:
+                    pass
             raise
 
         # Optionally send SMS if Twilio is configured and sms_enabled True
@@ -213,7 +227,10 @@ class bookings(models.Model):
         if not recipient:
             logger.error('Attempted to send rejection email but booking %s has no email address', self.pk)
             if request is not None:
-                messages.error(request, f'Cannot send rejection email for booking {self.pk}: no email address provided')
+                try:
+                    messages.error(request, f'Cannot send rejection email for booking {self.pk}: no email address provided')
+                except Exception:
+                    pass
             raise ValueError('Booking has no email address')
         to = [recipient]
 
@@ -225,13 +242,22 @@ class bookings(models.Model):
             if 'console' in backend:
                 logger.info('Console email backend is configured; email was printed to the server console')
                 if request is not None:
-                    messages.info(request, f'Rejection email for booking {self.pk} was printed to the server console (console email backend in use).')
+                    try:
+                        messages.info(request, f'Rejection email for booking {self.pk} was printed to the server console (console email backend in use).')
+                    except Exception:
+                        pass
             else:
                 if request is not None:
-                    messages.success(request, f'Rejection email for booking {self.pk} was sent via configured email backend.')
+                    try:
+                        messages.success(request, f'Rejection email for booking {self.pk} was sent via configured email backend.')
+                    except Exception:
+                        pass
         except Exception as e:
             logger.exception('Failed to send rejection email: %s', e)
             if request is not None:
-                messages.error(request, f'Failed to send rejection email for booking {self.pk}: {e}')
+                try:
+                    messages.error(request, f'Failed to send rejection email for booking {self.pk}: {e}')
+                except Exception:
+                    pass
             raise
 

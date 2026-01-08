@@ -128,7 +128,7 @@ MEDIA_ROOT = MEDIA_DIR
 EMAIL_BACKEND = os.environ.get('EMAIL_BACKEND', 'django.core.mail.backends.smtp.EmailBackend')
 DEFAULT_FROM_EMAIL = os.environ.get('DEFAULT_FROM_EMAIL', 'pulipandi8158@gmail.com')
 
-SITE_URL = os.environ.get('SITE_URL', 'https://w82sqcrg-8000.inc1.devtunnels.ms')
+SITE_URL = os.environ.get('SITE_URL', 'https://w82sqcrg-8000.inc1.devtunnels.ms')   
 
 # Optional Twilio configuration for SMS notifications (leave empty to disable SMS)
 TWILIO_ACCOUNT_SID = os.environ.get('TWILIO_ACCOUNT_SID', '')
