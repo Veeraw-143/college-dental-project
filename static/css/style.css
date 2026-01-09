@@ -1345,6 +1345,142 @@ body.dark .feedback-testimonial-message {
   }
 }
 
+/* ============= OTP & NEW FORM ELEMENTS ============= */
+
+/* OTP Verification Section */
+.otp-verification {
+  margin-bottom: 20px !important;
+  padding: 20px !important;
+  background: linear-gradient(135deg, #f0f4f8 0%, #e8f1f6 100%) !important;
+  border-radius: 12px !important;
+  border-left: 4px solid var(--accent) !important;
+}
+
+.otp-verification h3 {
+  color: var(--accent);
+  margin-bottom: 15px;
+  font-size: 18px;
+}
+
+/* Select Dropdowns */
+.field select {
+  width: 100%;
+  padding: 12px 16px;
+  border: 2px solid var(--border-color);
+  border-radius: 8px;
+  background-color: var(--card);
+  color: var(--text-primary);
+  font-size: 14px;
+  font-family: inherit;
+  transition: all 0.3s ease;
+  cursor: pointer;
+  appearance: none;
+  background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%232fa4a9' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  background-size: 20px;
+  padding-right: 40px;
+}
+
+.field select:hover {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(47, 164, 169, 0.1);
+}
+
+.field select:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(47, 164, 169, 0.2);
+  background-color: #fafbfc;
+}
+
+.field select:disabled {
+  background-color: #f5f5f5;
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+/* Dark mode select */
+body.dark .field select {
+  background-color: #1e1e1e;
+  color: #fff;
+  border-color: #444;
+}
+
+body.dark .field select:focus {
+  background-color: #252525;
+  border-color: var(--accent);
+}
+
+body.dark .field select:disabled {
+  background-color: #2a2a2a;
+  opacity: 0.5;
+}
+
+/* OTP Input Styling */
+#otp-code {
+  letter-spacing: 8px;
+  font-size: 20px !important;
+  font-weight: bold;
+  text-align: center;
+  font-family: 'Courier New', monospace !important;
+}
+
+/* Form Buttons */
+#send-otp-btn,
+#verify-otp-btn,
+#resend-otp-btn {
+  width: 100%;
+  margin-top: 10px;
+}
+
+#send-otp-btn:hover,
+#verify-otp-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 16px rgba(47, 164, 169, 0.3);
+}
+
+#resend-otp-btn {
+  background: transparent;
+  border: 2px solid var(--accent);
+  color: var(--accent);
+}
+
+#resend-otp-btn:hover {
+  background: rgba(47, 164, 169, 0.1);
+}
+
+body.dark #resend-otp-btn:hover {
+  background: rgba(47, 164, 169, 0.2);
+}
+
+/* OTP Success Message */
+#otp-success {
+  color: #4caf50;
+  font-weight: bold;
+  text-align: center;
+  padding: 10px;
+  background: rgba(76, 175, 80, 0.1);
+  border-radius: 6px;
+}
+
+/* Submit Button - Disabled State */
+#submit-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none !important;
+}
+
+#submit-btn:disabled:hover {
+  transform: none !important;
+  box-shadow: none !important;
+}
+
+#submit-btn:enabled {
+  background: linear-gradient(135deg, var(--accent), var(--accent-2));
+  box-shadow: 0 4px 12px rgba(47, 164, 169, 0.3);
+}
+
 /* Improvements for Touch devices */
 @media (hover: none) and (pointer: coarse) {
   .btn {
@@ -1356,6 +1492,11 @@ body.dark .feedback-testimonial-message {
   .nav-link {
     padding: 8px 12px;
   }
+  
+  .field select {
+    padding: 14px 16px;
+    font-size: 16px;
+  }
 }
 
 /* High DPI screens */
@@ -1365,3 +1506,19 @@ body.dark .feedback-testimonial-message {
     -moz-osx-font-smoothing: auto;
   }
 }
+
+/* Mobile responsive for OTP section */
+@media (max-width: 640px) {
+  .otp-verification {
+    padding: 16px !important;
+    border-left-width: 3px !important;
+  }
+  
+  #otp-code {
+    font-size: 18px !important;
+    letter-spacing: 6px;
+  }
+  
+  .field select {
+    padding: 12px 32px 12px 12px;
+    font-size: 14px;

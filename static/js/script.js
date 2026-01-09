@@ -1,7 +1,7 @@
-// Enhanced script: theme toggle, form validation, modal, confetti and small UI interactions
+// Enhanced script: theme toggle, form validation, OTP, modal, confetti and UI interactions
 
 document.addEventListener('DOMContentLoaded', () => {
-  // Elements
+  // ============= ELEMENTS =============
   const themeToggle = document.getElementById('theme-toggle');
   const form = document.getElementById('appointment-form');
   const modal = document.getElementById('modal');
@@ -11,6 +11,22 @@ document.addEventListener('DOMContentLoaded', () => {
   const serviceCards = document.querySelectorAll('.service-card');
   const dateInput = document.getElementById('date');
   const slotGrid = document.getElementById('slot-grid');
+  
+  // OTP Elements
+  const mobileOtpInput = document.getElementById('mobile-otp');
+  const sendOtpBtn = document.getElementById('send-otp-btn');
+  const otpInputSection = document.getElementById('otp-input-section');
+  const otpCodeInput = document.getElementById('otp-code');
+  const verifyOtpBtn = document.getElementById('verify-otp-btn');
+  const resendOtpBtn = document.getElementById('resend-otp-btn');
+  const otpSuccessDiv = document.getElementById('otp-success');
+  const mobileInput = document.getElementById('mobile');
+  const otpVerifiedInput = document.getElementById('otp_verified');
+  const submitBtn = document.getElementById('submit-btn');
+  
+  // State
+  let otpVerified = false;
+  let selectedSlot = null;
 
   // Set min date to today
   if (dateInput) {
@@ -18,7 +34,7 @@ document.addEventListener('DOMContentLoaded', () => {
     dateInput.setAttribute('min', today);
   }
 
-  // Initialize theme based on system preference or saved preference
+  // ============= THEME =============
   function initializeTheme() {
     const savedTheme = localStorage.getItem('theme');
     const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
@@ -38,14 +54,16 @@ document.addEventListener('DOMContentLoaded', () => {
   let slide = 0;
   const hero = document.querySelector('.hero-overlay');
 
-  setInterval(() => {
-    slide = (slide + 2) % 2;
-    hero.style.backgroundImage = slide === 0
-      ? "url('/static/media/bg.png')"
-      : "url('/static/media/bg2.webp')";
-  }, 5000);
+  if (hero) {
+    setInterval(() => {
+      slide = (slide + 2) % 2;
+      hero.style.backgroundImage = slide === 0
+        ? "url('/static/media/bg.png')"
+        : "url('/static/media/bg2.webp')";
+    }, 5000);
+  }
 
-  // Floating label support: keep label lifted when field has value
+  // Floating label support
   document.querySelectorAll('.field input[type="text"], .field input[type="email"], .field input[type="tel"], .field input[type="date"]').forEach(input => {
     const field = input.closest('.field');
     if (!field) return;
@@ -56,7 +74,6 @@ document.addEventListener('DOMContentLoaded', () => {
     input.addEventListener('input', updateFilled);
     input.addEventListener('focus', updateFilled);
     input.addEventListener('blur', updateFilled);
-    // run once in case autofill filled the inputs
     setTimeout(updateFilled, 120);
     updateFilled();
   });
@@ -64,7 +81,6 @@ document.addEventListener('DOMContentLoaded', () => {
   // Theme management
   initializeTheme();
   
-  // Listen for system theme changes
   window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e) => {
     if (!localStorage.getItem('theme')) {
       document.body.classList.toggle('dark', e.matches);
@@ -84,13 +100,7 @@ document.addEventListener('DOMContentLoaded', () => {
     themeToggle.setAttribute('aria-label', document.body.classList.contains('dark') ? 'Switch to light mode' : 'Switch to dark mode');
   }
 
-  // Helper: read cookie (for CSRF)
-  function getCookie(name){
-    const m = document.cookie.match('(^|;)\\s*' + name + '\\s*=\\s*([^;]+)');
-    return m ? m.pop() : '';
-  }
-
-  // Service card interactions
+  // ============= SERVICE CARDS =============
   serviceCards.forEach(card => {
     card.addEventListener('click', () => showServiceDetail(card));
     card.addEventListener('keypress', (e) => { if (e.key === 'Enter') showServiceDetail(card); });
@@ -102,32 +112,33 @@ document.addEventListener('DOMContentLoaded', () => {
     showServiceModal(title, description);
   }
 
-  // Modal helpers (animated)
+  // ============= MODAL =============
   function showModal(title, message){
     document.getElementById('modal-title').textContent = title;
     document.getElementById('modal-message').textContent = message;
     modal.setAttribute('aria-hidden', 'false');
     modal.classList.add('open');
-    // focus after the opening animation starts
     setTimeout(()=> modalOk.focus(), 180);
   }
+  
   function showServiceModal(title, description){
     document.getElementById('modal-title').textContent = title;
     document.getElementById('modal-message').innerHTML = description;
     modal.setAttribute('aria-hidden', 'false');
     modal.classList.add('open');
-    // focus after the opening animation starts
     setTimeout(()=> modalOk.focus(), 180);
   }
+  
   function hideModal(){
     modal.setAttribute('aria-hidden', 'true');
     modal.classList.remove('open');
   }
+  
   modalOk.addEventListener('click', () => hideModal());
   modalClose.addEventListener('click', () => hideModal());
   document.addEventListener('keydown', (e)=>{ if(e.key==='Escape') hideModal(); });
 
-  // Simple confetti (with random delay/duration for a smoother feel)
+  // ============= CONFETTI =============
   function burstConfetti(){
     for(let i=0;i<24;i++){
       const el = document.createElement('div');
@@ -139,431 +150,310 @@ document.addEventListener('DOMContentLoaded', () => {
       el.style.transform = `translateY(${-(Math.random()*20+10)}px) rotate(${Math.random()*360}deg)`;
       el.style.animationDelay = `${delay}s`;
       el.style.animationDuration = `${dur}s`;
-      el.style.willChange = 'transform, opacity';
       document.body.appendChild(el);
-      setTimeout(()=> el.remove(), (dur + delay) * 1000 + 200);
+      setTimeout(() => el.remove(), (delay + dur) * 1000);
     }
   }
 
-  // Form validation and submission handling
-  form?.addEventListener('submit', (e) => {
-    // prevent default to provide a friendly UI then let the form submit after a short delay
-    e.preventDefault();
-    clearErrors();
-    const data = {
-      name: form.name.value.trim(),
-      mail: form.mail.value.trim(),
-      mobile: form.mobile.value.trim(),
-      date: form.date.value,
-      time_slot: selectedSlot || '' // Use selectedSlot variable
-    };
+  // ============= OTP FUNCTIONALITY =============
+  function clearOtpSection() {
+    mobileOtpInput.value = '';
+    otpCodeInput.value = '';
+    otpInputSection.style.display = 'none';
+    otpSuccessDiv.style.display = 'none';
+  }
 
-    const errors = validate(data);
-    if (Object.keys(errors).length){
-      showErrors(errors);
-      formFeedback.textContent = 'Please fix the highlighted fields.';
+  sendOtpBtn.addEventListener('click', () => {
+    const mobile = mobileOtpInput.value.trim();
+    
+    if (!mobile || mobile.length !== 10 || !/^\d+$/.test(mobile)) {
+      alert('Please enter a valid 10-digit phone number');
       return;
     }
 
-    // show a success modal and animate confetti, then submit the native form to backend
+    sendOtpBtn.disabled = true;
+    sendOtpBtn.textContent = 'Sending OTP...';
+
+    fetch('/api/send-otp/', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+        'X-CSRFToken': getCookie('csrftoken')
+      },
+      body: `mobile=${encodeURIComponent(mobile)}`
+    })
+    .then(r => r.json())
+    .then(data => {
+      if (data.success) {
+        alert(`${data.message}\nFor demo: OTP is in the console/email. Check server output.`);
+        otpInputSection.style.display = 'block';
+        sendOtpBtn.textContent = 'OTP Sent ✓';
+      } else {
+        alert(`Error: ${data.error}`);
+        sendOtpBtn.textContent = 'Send OTP';
+        sendOtpBtn.disabled = false;
+      }
+    })
+    .catch(err => {
+      console.error('Error:', err);
+      alert('Failed to send OTP. Check console.');
+      sendOtpBtn.textContent = 'Send OTP';
+      sendOtpBtn.disabled = false;
+    });
+  });
+
+  verifyOtpBtn.addEventListener('click', () => {
+    const mobile = mobileOtpInput.value.trim();
+    const otp = otpCodeInput.value.trim();
+
+    if (!otp || otp.length !== 6) {
+      alert('Please enter a 6-digit OTP');
+      return;
+    }
+
+    verifyOtpBtn.disabled = true;
+    verifyOtpBtn.textContent = 'Verifying...';
+
+    fetch('/api/verify-otp/', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+        'X-CSRFToken': getCookie('csrftoken')
+      },
+      body: `mobile=${encodeURIComponent(mobile)}&otp=${encodeURIComponent(otp)}`
+    })
+    .then(r => r.json())
+    .then(data => {
+      if (data.success) {
+        otpVerified = true;
+        mobileInput.value = mobile;
+        otpVerifiedInput.value = 'true';
+        otpInputSection.style.display = 'none';
+        otpSuccessDiv.style.display = 'block';
+        otpSuccessDiv.textContent = '✓ Phone verified successfully';
+        submitBtn.disabled = false;
+        verifyOtpBtn.textContent = 'Verified ✓';
+      } else {
+        alert(`Error: ${data.error}`);
+        verifyOtpBtn.textContent = 'Verify OTP';
+        verifyOtpBtn.disabled = false;
+      }
+    })
+    .catch(err => {
+      console.error('Error:', err);
+      alert('Error verifying OTP. Check console.');
+      verifyOtpBtn.textContent = 'Verify OTP';
+      verifyOtpBtn.disabled = false;
+    });
+  });
+
+  resendOtpBtn.addEventListener('click', () => {
+    clearOtpSection();
+    sendOtpBtn.textContent = 'Send OTP';
+    sendOtpBtn.disabled = false;
+    sendOtpBtn.click();
+  });
+
+  // ============= DATE CHANGE HANDLER =============
+  dateInput?.addEventListener('change', async (e) => {
+    const selectedDate = e.target.value;
+    if (!selectedDate) return;
+
+    try {
+      const response = await fetch(`/api/booked-slots/?date=${selectedDate}`);
+      const data = await response.json();
+
+      if (data.is_sunday) {
+        alert('Clinic is closed on Sundays. Please select another date.');
+        dateInput.value = '';
+        slotGrid.innerHTML = '<p style="color: #f44336; text-align: center; grid-column: 1/-1;">Clinic closed on Sundays</p>';
+        return;
+      }
+
+      updateSlots(data);
+    } catch (err) {
+      console.error('Error fetching slots:', err);
+    }
+  });
+
+  function updateSlots(data) {
+    slotGrid.innerHTML = '';
+    selectedSlot = null;
+    document.getElementById('time_slot').value = '';
+
+    const now = new Date();
+    const today = new Date().toISOString().split('T')[0];
+    const isToday = data.date === today;
+
+    data.available_slots.forEach(slot => {
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'slot';
+      btn.textContent = slot;
+      btn.dataset.slot = slot;
+
+      if (isToday) {
+        const [time, period] = slot.split(' ');
+        const [hours, minutes] = time.split(':').map(Number);
+        const slotDate = new Date(now.getFullYear(), now.getMonth(), now.getDate(),
+          period === 'PM' && hours !== 12 ? hours + 12 : (period === 'AM' && hours === 12 ? 0 : hours), minutes);
+        
+        if (slotDate < now) {
+          btn.classList.add('expired');
+          btn.disabled = true;
+          btn.textContent = `${slot} (Passed)`;
+          return;
+        }
+      }
+
+      btn.addEventListener('click', (e) => {
+        e.preventDefault();
+        selectSlot(btn, slot);
+      });
+
+      slotGrid.appendChild(btn);
+    });
+
+    // Show booked message if all slots booked
+    if (data.available_slots.length === 0) {
+      slotGrid.innerHTML = '<p style="color: #ff9800; text-align: center; grid-column: 1/-1;">All slots booked for this date</p>';
+    }
+  }
+
+  function selectSlot(button, slot) {
+    const prevSelected = slotGrid.querySelector('.slot.selected');
+    if (prevSelected) prevSelected.classList.remove('selected');
+    
+    button.classList.add('selected');
+    selectedSlot = slot;
+    document.getElementById('time_slot').value = slot;
+    console.log('Selected slot:', slot);
+  }
+
+  // ============= FORM SUBMISSION =============
+  form?.addEventListener('submit', (e) => {
+    e.preventDefault();
+    clearErrors();
+
+    const data = {
+      name: document.getElementById('name').value.trim(),
+      mail: document.getElementById('mail').value.trim(),
+      mobile: mobileInput.value.trim(),
+      date: dateInput.value,
+      time_slot: document.getElementById('time_slot').value,
+      doctor_id: document.getElementById('doctor')?.value || '',
+      service_id: document.getElementById('service')?.value || '',
+      otp_verified: otpVerifiedInput.value
+    };
+
+    const errors = validate(data);
+    if (Object.keys(errors).length) {
+      showErrors(errors);
+      return;
+    }
+
     showModal('Thank you!', 'Your appointment request is received. We will contact you shortly.');
     burstConfetti();
     formFeedback.textContent = 'Submitting appointment…';
 
-    // If fetch is supported, do AJAX submit for a smoother UX (falls back to native submit)
-    if (window.fetch){
-      const action = form.action;
-      const fd = new FormData(form);
-      const csrf = getCookie('csrftoken') || getCookie('csrf');
-      fetch(action, {
-        method:'POST',
-        headers:{
-          'X-Requested-With': 'XMLHttpRequest',
-          'X-CSRFToken': csrf,
-          'Accept': 'application/json'
-        },
-        body: fd,
-        credentials: 'same-origin'
-      }).then(res => {
-        const ct = res.headers.get('content-type') || '';
-        if (ct.indexOf('application/json') !== -1) return res.json();
-        return res.text().then(t => ({html:t}));
-      }).then(data => {
-        if (data && data.success){
-          showModal('Thank you!', data.message || 'Your appointment request is received.');
-          burstConfetti();
-          formFeedback.textContent = data.message || 'Submitted';
-          form.reset();
-          document.querySelectorAll('.field').forEach(f=>f.classList.remove('filled'));
+    if (window.fetch) {
+      const formData = new FormData();
+      formData.append('name', data.name);
+      formData.append('mail', data.mail);
+      formData.append('mobile', data.mobile);
+      formData.append('date', data.date);
+      formData.append('time_slot', data.time_slot);
+      formData.append('doctor_id', data.doctor_id);
+      formData.append('service_id', data.service_id);
+      formData.append('otp_verified', data.otp_verified);
+      formData.append('csrfmiddlewaretoken', getCookie('csrftoken'));
+
+      fetch('/booking/', {
+        method: 'POST',
+        body: formData,
+        headers: {'X-Requested-With': 'XMLHttpRequest'}
+      })
+      .then(r => r.json())
+      .then(json => {
+        if (json.success) {
+          setTimeout(() => {
+            form.reset();
+            clearOtpSection();
+            otpVerified = false;
+            mobileInput.value = '';
+            otpVerifiedInput.value = 'false';
+            submitBtn.disabled = true;
+            slotGrid.innerHTML = '';
+            formFeedback.textContent = 'Appointment submitted successfully!';
+          }, 2000);
         } else {
-          // map server errors to fields if provided
-          if (data && data.errors){
-            showErrors(data.errors);
-            formFeedback.textContent = data.message || 'Please fix the fields below.';
-          } else if (data && data.error){
-            formFeedback.textContent = data.error;
-          } else {
-            // fallback: submit the native form
-            setTimeout(()=> form.submit(), 900);
-          }
+          formFeedback.textContent = 'Error: ' + (json.error || 'Unknown error');
         }
-      }).catch(()=> {
-        // network or parse error -> fallback to native submit
-        setTimeout(()=> form.submit(), 900);
+      })
+      .catch(err => {
+        console.error(err);
+        formFeedback.textContent = 'Submission failed. Check console.';
       });
     } else {
-      setTimeout(()=> form.submit(), 900);
+      form.submit();
     }
   });
 
-  function validate({name, mail, mobile, date, time_slot}){
+  function validate(data) {
     const errors = {};
-    if (!name || name.length < 2) errors.name = 'Enter a valid name (min 2 chars)';
-    if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(mail)) errors.mail = 'Provide a valid email';
-    if (!/^\+?[0-9]{7,15}$/.test(mobile.replace(/[^0-9+]/g,''))) errors.mobile = 'Enter a valid phone number';
-    if (!date) errors.date = 'Pick a date';
-    else {
-      const today = new Date().toISOString().split('T')[0];
-      if (date < today) errors.date = 'Date cannot be in the past';
-    }
-    if (!time_slot) errors.time_slot = 'Select a time slot';
+    if (!data.name || data.name.length < 2) errors.name = 'Enter a valid name';
+    if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(data.mail)) errors.mail = 'Enter a valid email';
+    if (!/^\d{10}$/.test(data.mobile.replace(/[^0-9]/g, ''))) errors.mobile = 'Enter a valid 10-digit phone';
+    if (!data.date) errors.date = 'Select a date';
+    if (!data.time_slot) errors.time_slot = 'Select a time slot';
+    if (data.otp_verified !== 'true') errors.otp = 'Verify phone with OTP';
     return errors;
   }
 
-  function showErrors(errors){
-    Object.entries(errors).forEach(([k,msg])=>{
+  function showErrors(errors) {
+    Object.entries(errors).forEach(([k, msg]) => {
       const el = document.querySelector(`.error[data-for="${k}"]`);
-      if(el) el.textContent = msg;
+      if (el) el.textContent = msg;
       const input = document.getElementById(k);
-      if(input) input.setAttribute('aria-invalid', 'true');
+      if (input) input.setAttribute('aria-invalid', 'true');
     });
   }
-  function clearErrors(){
-    document.querySelectorAll('.error').forEach(e=>e.textContent='');
-    document.querySelectorAll('.appointment-card input').forEach(i=>i.removeAttribute('aria-invalid'));
+
+  function clearErrors() {
+    document.querySelectorAll('.error').forEach(e => e.textContent = '');
+    document.querySelectorAll('input, select').forEach(i => i.removeAttribute('aria-invalid'));
     formFeedback.textContent = '';
   }
 
-  // Phone formatting (simple)
-  const mobileInput = document.getElementById('mobile');
-  mobileInput?.addEventListener('input', (e)=>{
-    const cleaned = e.target.value.replace(/[^0-9+]/g, '');
-    e.target.value = cleaned;
+  // ============= PHONE FORMATTING =============
+  mobileOtpInput?.addEventListener('input', (e) => {
+    e.target.value = e.target.value.replace(/[^0-9]/g, '').slice(0, 10);
   });
 
-  // ALL TIME SLOTS
-  const ALL_SLOTS = [
-    "09:00 AM","09:15 AM","09:30 AM","09:45 AM",
-    "10:00 AM","10:15 AM","10:30 AM","10:45 AM",
-    "11:00 AM","11:15 AM","11:30 AM","11:45 AM",
-    "02:00 PM","02:15 PM","02:30 PM","02:45 PM",
-    "03:00 PM","03:15 PM","03:30 PM","03:45 PM",
-    "04:00 PM","04:15 PM","04:30 PM","04:45 PM"
-  ];
-
-  // Load slots for a specific date
-  async function loadSlotsForDate(date) {
-    if (!date) return;
-    
-    try {
-      const response = await fetch(`/api/booked-slots/?date=${date}`);
-      if (!response.ok) {
-        console.error('Failed to fetch booked slots');
-        updateSlotGrid(ALL_SLOTS, [], null, false);
-        return;
-      }
-      const data = await response.json();
-      updateSlotGrid(ALL_SLOTS, data.booked_slots || [], data.current_time, data.is_today);
-    } catch (err) {
-      console.error('Error fetching booked slots:', err);
-      updateSlotGrid(ALL_SLOTS, [], null, false);
-    }
-  }
-
-  // Initialize slots on page load
-  function initializeSlots() {
-    if (dateInput && dateInput.value) {
-      loadSlotsForDate(dateInput.value);
-    } else if (dateInput) {
-      const today = new Date().toISOString().split('T')[0];
-      dateInput.value = today;
-      dateInput.setAttribute('min', today);
-      loadSlotsForDate(today);
-    }
-  }
-
-  // Initialize slots on page load
-  initializeSlots();
-
-  // Load slots dynamically when date changes
-  dateInput?.addEventListener('change', async (e) => {
-    const selectedDate = e.target.value;
-    if (!selectedDate) return;
-    
-    try {
-      const response = await fetch(`/api/booked-slots/?date=${selectedDate}`);
-      if (!response.ok) {
-        console.error('Failed to fetch booked slots');
-        return;
-      }
-      const data = await response.json();
-      // Pass both booked slots and time info to updateSlotGrid
-      updateSlotGrid(ALL_SLOTS, data.booked_slots || [], data.current_time, data.is_today);
-    } catch (err) {
-      console.error('Error fetching booked slots:', err);
-    }
+  mobileInput?.addEventListener('input', (e) => {
+    e.target.value = e.target.value.replace(/[^0-9]/g, '').slice(0, 10);
   });
 
-  // Track selected slot
-  let selectedSlot = null;
-
-  // Helper function to check if a slot time is in the past
-  function isSlotInPast(slotString, currentTimeString) {
-    try {
-      // Parse slot time (e.g., "09:00 AM" to minutes)
-      const slotParts = slotString.match(/(\d+):(\d+)\s(AM|PM)/);
-      if (!slotParts) return false;
-      
-      let slotHour = parseInt(slotParts[1]);
-      const slotMin = parseInt(slotParts[2]);
-      const slotPeriod = slotParts[3];
-      
-      // Convert to 24-hour format
-      if (slotPeriod === 'PM' && slotHour !== 12) slotHour += 12;
-      if (slotPeriod === 'AM' && slotHour === 12) slotHour = 0;
-      
-      const slotTotalMin = slotHour * 60 + slotMin;
-      
-      // Parse current time (e.g., "02:30 PM")
-      const currentParts = currentTimeString.match(/(\d+):(\d+)\s(AM|PM)/);
-      if (!currentParts) return false;
-      
-      let currentHour = parseInt(currentParts[1]);
-      const currentMin = parseInt(currentParts[2]);
-      const currentPeriod = currentParts[3];
-      
-      // Convert to 24-hour format
-      if (currentPeriod === 'PM' && currentHour !== 12) currentHour += 12;
-      if (currentPeriod === 'AM' && currentHour === 12) currentHour = 0;
-      
-      const currentTotalMin = currentHour * 60 + currentMin;
-      
-      return slotTotalMin < currentTotalMin;
-    } catch (err) {
-      console.error('Error parsing time:', err);
-      return false;
-    }
-  }
-
-  // Update the slot grid with available/booked slots
-  function updateSlotGrid(allSlots, bookedSlots, currentTime = null, isToday = false) {
-    if (!slotGrid) return;
-    
-    slotGrid.innerHTML = '';
-    selectedSlot = null; // Reset selection when slots update
-    
-    allSlots.forEach(slot => {
-      const isBooked = bookedSlots.includes(slot);
-      const isExpired = isToday && currentTime && isSlotInPast(slot, currentTime);
-      const button = document.createElement('button');
-      
-      button.type = 'button';
-      let className = 'slot';
-      if (isBooked) className += ' disabled';
-      if (isExpired) className += ' expired';
-      button.className = className;
-      button.textContent = slot;
-      
-      // Set aria-label based on state
-      let ariaLabel = slot;
-      if (isBooked) ariaLabel += ' (booked)';
-      if (isExpired) ariaLabel += ' (time passed)';
-      if (!isBooked && !isExpired) ariaLabel += ' (available)';
-      button.setAttribute('aria-label', ariaLabel);
-      
-      // Disable if booked or expired
-      if (isBooked || isExpired) {
-        button.disabled = true;
-      } else {
-        // Add click handler for available slots
-        button.addEventListener('click', (e) => {
-          e.preventDefault();
-          selectSlot(button, slot);
-        });
-      }
-      
-      slotGrid.appendChild(button);
-    });
-  }
-
-  // Handle slot selection
-  function selectSlot(button, slot) {
-    // Remove previous selection
-    const prevSelected = slotGrid.querySelector('.slot.selected');
-    if (prevSelected) {
-      prevSelected.classList.remove('selected');
-    }
-    
-    // Add selection to current slot
-    button.classList.add('selected');
-    selectedSlot = slot;
-    
-    // Update hidden form field with selected slot
-    const hiddenInput = document.createElement('input');
-    hiddenInput.type = 'hidden';
-    hiddenInput.name = 'time_slot';
-    hiddenInput.value = slot;
-    
-    // Remove any existing hidden time_slot input
-    const existingInput = form.querySelector('input[type="hidden"][name="time_slot"]');
-    if (existingInput) {
-      existingInput.remove();
-    }
-    
-    // Add new hidden input to form
-    form.appendChild(hiddenInput);
-    
-    console.log('Selected slot:', slot);
-  }
-
-  // tiny scrollspy to highlight nav
+  // ============= SCROLL SPY =============
   const navLinks = document.querySelectorAll('.nav-link');
   const sections = Array.from(navLinks)
-  .map(a => {
-    const id = a.getAttribute('href');
-    if (!id || id === '#') return null;
-    return document.querySelector(id);
-  })
-  .filter(Boolean);
+    .map(a => {
+      const id = a.getAttribute('href');
+      if (!id || id === '#') return null;
+      return document.querySelector(id);
+    })
+    .filter(Boolean);
 
   window.addEventListener('scroll', () => {
     let idx = sections.findIndex((s, i) => {
       const rect = s.getBoundingClientRect();
-      return rect.top <= 120 && rect.bottom > 160;
+      return rect.top <= 100 && rect.bottom >= 100;
     });
-    navLinks.forEach(l=> l.classList.remove('active'));
-    if(idx>=0 && navLinks[idx]) navLinks[idx].classList.add('active');
+    navLinks.forEach(l => l.classList.remove('active'));
+    if(idx >= 0 && navLinks[idx]) navLinks[idx].classList.add('active');
   });
 
-  // Feedback form handler
-  const feedbackForm = document.getElementById('feedback-form');
-  const feedbackStatus = document.getElementById('feedback-status');
-  const feedbackTestimonial = document.getElementById('feedback-testimonial');
-  
-  if (feedbackForm) {
-    feedbackForm.addEventListener('submit', (e) => {
-      e.preventDefault();
-      
-      try {
-        // Get form values
-        const name = document.getElementById('feedback-name').value.trim();
-        const message = document.getElementById('feedback-message').value.trim();
-        
-        // Validate inputs
-        if (!name || !message) {
-          showFeedbackError('Please fill in all fields');
-          return;
-        }
-        
-        if (name.length < 2) {
-          showFeedbackError('Name must be at least 2 characters');
-          return;
-        }
-        
-        if (message.length < 10) {
-          showFeedbackError('Feedback must be at least 10 characters');
-          return;
-        }
-        
-        // Clear previous error/status messages
-        feedbackStatus.textContent = '';
-        feedbackStatus.className = 'feedback-status';
-        
-        // Display the feedback in testimonial section
-        displayFeedback(name, message);
-        
-        // Show success message
-        showFeedbackSuccess('Thank you for your feedback!');
-        
-        // Reset form
-        feedbackForm.reset();
-        
-      } catch (error) {
-        console.error('Feedback form error:', error);
-        showFeedbackError('An error occurred. Please try again.');
-      }
-    });
-  }
-  
-  function displayFeedback(name, message) {
-    try {
-      // Display in feedback box (right column)
-      const feedbackContent = document.createElement('div');
-      feedbackContent.className = 'feedback-testimonial-content';
-      feedbackContent.innerHTML = `
-        <p class="feedback-testimonial-message">"${escapeHtml(message)}"</p>
-        <p class="feedback-testimonial-author">— ${escapeHtml(name)}</p>
-      `;
-      
-      // Clear placeholder and previous content, then display new feedback
-      feedbackTestimonial.innerHTML = '';
-      feedbackTestimonial.appendChild(feedbackContent);
-      
-      // Also add to testimonials section (What our patients say)
-      const testimonialsGrid = document.querySelector('.testimonials-grid');
-      if (testimonialsGrid) {
-        // Create new testimonial blockquote
-        const newTestimonial = document.createElement('blockquote');
-        newTestimonial.className = 'testimonial';
-        newTestimonial.innerHTML = `
-          <p>"${escapeHtml(message)}"</p>
-          <cite>— ${escapeHtml(name)}</cite>
-        `;
-        
-        // Add the new testimonial at the beginning
-        testimonialsGrid.insertBefore(newTestimonial, testimonialsGrid.firstChild);
-        
-        // Keep only the last 3 testimonials (removes the oldest one)
-        const testimonials = testimonialsGrid.querySelectorAll('.testimonial');
-        if (testimonials.length > 3) {
-          testimonials[testimonials.length - 1].remove();
-        }
-      }
-    } catch (error) {
-      console.error('Error displaying feedback:', error);
-      showFeedbackError('Error displaying feedback. Please try again.');
-    }
-  }
-  
-  function showFeedbackSuccess(message) {
-    feedbackStatus.textContent = message;
-    feedbackStatus.className = 'feedback-status success';
-    
-    // Auto-hide after 3 seconds
-    setTimeout(() => {
-      feedbackStatus.textContent = '';
-      feedbackStatus.className = 'feedback-status';
-    }, 3000);
-  }
-  
-  function showFeedbackError(message) {
-    feedbackStatus.textContent = message;
-    feedbackStatus.className = 'feedback-status error';
-  }
-  
-  // Helper function to escape HTML and prevent XSS
-  function escapeHtml(text) {
-    const map = {
-      '&': '&amp;',
-      '<': '&lt;',
-      '>': '&gt;',
-      '"': '&quot;',
-      "'": '&#039;'
-    };
-    return text.replace(/[&<>"']/g, (char) => map[char]);
-  }
-
-  // Intersection Observer for reveal animations
+  // ============= REVEAL ANIMATIONS =============
   const revealElements = document.querySelectorAll('.reveal');
   if (revealElements.length > 0 && 'IntersectionObserver' in window) {
     const revealObserver = new IntersectionObserver((entries) => {
@@ -579,14 +469,16 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     revealElements.forEach(el => revealObserver.observe(el));
-  } else if (revealElements.length > 0) {
-    // Fallback for older browsers: show immediately
-    revealElements.forEach(el => el.classList.add('in-view'));
   }
 
+  // Helper function
+  function getCookie(name) {
+    const m = document.cookie.match('(^|;)\\s*' + name + '\\s*=\\s*([^;]+)');
+    return m ? m.pop() : '';
+  }
 });
 
-// Scroll to appointment section when "Book Appointment" button is clicked
+// Scroll to appointment
 function scrollToAppointment() {
   const appointmentSection = document.getElementById('appointment');
   if (appointmentSection) {
@@ -594,10 +486,9 @@ function scrollToAppointment() {
   }
 }
 
-// Expose a minimal API for potential reuse
+// API Service
 const AppointmentService = {
   book: (data) => {
     console.log('Appointment Data:', data);
-    // can be extended to call backend via fetch
   }
 };

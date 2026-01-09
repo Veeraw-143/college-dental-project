@@ -8,6 +8,8 @@ from django.core import signing
 from django.core.mail import EmailMessage
 from django.urls import reverse
 from django.contrib import messages
+from django.utils import timezone
+from datetime import timedelta
 
 logger = logging.getLogger(__name__)
 
@@ -19,26 +21,105 @@ except ImportError as e:
     logger.error('Failed to import qrcode or PIL: %s. Please install them with: pip install qrcode[pil] pillow', e)
     qrcode = None
 
-# Create your models here.
+
+# ============= NEW MODELS =============
+
+class Doctor(models.Model):
+    name = models.CharField(max_length=100)
+    specialization = models.CharField(max_length=100)
+    email = models.EmailField()
+    phone = models.CharField(max_length=15)
+    experience_years = models.IntegerField(default=0)
+    bio = models.TextField(blank=True, null=True)
+    is_active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = 'Doctor'
+        verbose_name_plural = 'Doctors'
+        ordering = ['name']
+
+    def __str__(self):
+        return f"{self.name} - {self.specialization}"
+
+
+class Service(models.Model):
+    name = models.CharField(max_length=100)
+    description = models.TextField()
+    duration_minutes = models.IntegerField(default=30)
+    cost = models.DecimalField(max_digits=8, decimal_places=2, default=0)
+    is_active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = 'Service'
+        verbose_name_plural = 'Services'
+        ordering = ['name']
+
+    def __str__(self):
+        return self.name
+
+
+class OTPVerification(models.Model):
+    phone_number = models.CharField(max_length=15)
+    otp_code = models.CharField(max_length=6)
+    is_verified = models.BooleanField(default=False)
+    attempts = models.IntegerField(default=0)
+    created_at = models.DateTimeField(auto_now_add=True)
+    expires_at = models.DateTimeField()
+
+    class Meta:
+        verbose_name = 'OTP Verification'
+        verbose_name_plural = 'OTP Verifications'
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f"OTP for {self.phone_number}"
+
+    def is_valid(self):
+        """Check if OTP is still valid (not expired, verified, and attempts < 5)"""
+        return (
+            not self.is_verified
+            and self.attempts < 5
+            and timezone.now() < self.expires_at
+        )
+
+    def is_expired(self):
+        """Check if OTP has expired"""
+        return timezone.now() > self.expires_at
+
+
+# ============= ORIGINAL MODELS =============
+
 class bookings(models.Model):
     id = models.AutoField(primary_key=True)
     Name = models.CharField(max_length=50)
     mail = models.EmailField()
     mobile = models.CharField(
         max_length=15,
-        validators=[RegexValidator(regex=r'^\+?[0-9]{10,12}$', message='Enter a valid phone number')]
+        validators=[RegexValidator(regex=r'^[0-9]{10}$', message='Enter a valid 10-digit phone number')]
     )
     appointment_date = models.DateField(null=True, blank=True)
     time = models.TimeField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
+    
+    # New fields
+    preferred_doctor = models.ForeignKey(Doctor, on_delete=models.SET_NULL, null=True, blank=True)
+    preferred_service = models.ForeignKey(Service, on_delete=models.SET_NULL, null=True, blank=True)
+    otp_verified = models.BooleanField(default=False)
+    reminder_sent = models.BooleanField(default=False)
 
     STATUS_PENDING = 'pending'
     STATUS_ACCEPTED = 'accepted'
     STATUS_REJECTED = 'rejected'
+    STATUS_COMPLETED = 'completed'
+    STATUS_CANCELLED = 'cancelled'
     STATUS_CHOICES = [
         (STATUS_PENDING, 'Pending'),
         (STATUS_ACCEPTED, 'Accepted'),
         (STATUS_REJECTED, 'Rejected'),
+        (STATUS_COMPLETED, 'Completed'),
+        (STATUS_CANCELLED, 'Cancelled'),
     ]
     status = models.CharField(max_length=10, choices=STATUS_CHOICES, default=STATUS_PENDING)
 
@@ -260,4 +341,38 @@ class bookings(models.Model):
                 except Exception:
                     pass
             raise
+
+    def send_reminder_notification(self, request=None):
+        """Send a reminder email to the user 1 day before their appointment."""
+        if not self.appointment_date or not self.time:
+            logger.warning('Cannot send reminder for booking %s: missing date or time', self.pk)
+            return
+        
+        subject = f'Appointment Reminder — Surabi Dental Care on {self.appointment_date}'
+        message = (
+            f'Hello {self.Name},\n\n'
+            f'This is a friendly reminder about your upcoming appointment at Surabi Dental Care.\n\n'
+            f'Appointment Details:\n'
+            f'Date: {self.appointment_date}\n'
+            f'Time: {self.get_time_12hr()}\n'
+            f'Doctor: {self.preferred_doctor.name if self.preferred_doctor else "Not specified"}\n'
+            f'Service: {self.preferred_service.name if self.preferred_service else "Not specified"}\n\n'
+            f'Please arrive 10 minutes early. If you need to reschedule or cancel, please contact us as soon as possible.\n\n'
+            f'Thank you,\nSurabi Dental Care Team'
+        )
+        from_email = getattr(settings, 'DEFAULT_FROM_EMAIL', 'pulipandi8158@gmail.com')
+        recipient = (self.mail or '').strip()
+        if not recipient:
+            logger.error('Cannot send reminder for booking %s: no email address', self.pk)
+            raise ValueError('Booking has no email address')
+        
+        to = [recipient]
+        try:
+            email = EmailMessage(subject=subject, body=message, from_email=from_email, to=to)
+            sent = email.send(fail_silently=False)
+            logger.info('Sent reminder email to %s (booking id %s)', self.mail, self.pk)
+        except Exception as e:
+            logger.exception('Failed to send reminder email: %s', e)
+            raise
+
 

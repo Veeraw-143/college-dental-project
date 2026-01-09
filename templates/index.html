@@ -210,6 +210,31 @@
         <h2>Book an Appointment</h2>
         <form id="appointment-form" method="POST" action="{% url 'booking' %}">
             {% csrf_token %}
+            
+            <!-- Phone Verification Section -->
+            <div id="otp-section" class="otp-verification" style="background: #f0f4f8; padding: 20px; border-radius: 8px; margin-bottom: 20px; border-left: 4px solid #2fa4a9;">
+                <h3 style="margin-top: 0;">Phone Number Verification</h3>
+                <div class="field">
+                    <input type="tel" id="mobile-otp" name="mobile-otp" placeholder="" maxlength="10" required>
+                    <label for="mobile-otp">Mobile Number (10 digits)</label>
+                    <div class="error" data-for="mobile-otp" aria-live="polite"></div>
+                </div>
+                <button type="button" id="send-otp-btn" class="btn btn-primary" style="width: 100%;">Send OTP</button>
+                
+                <div id="otp-input-section" style="display: none; margin-top: 15px;">
+                    <div class="field">
+                        <input type="text" id="otp-code" name="otp-code" placeholder="" maxlength="6" style="letter-spacing: 5px; font-size: 18px;">
+                        <label for="otp-code">Enter 6-digit OTP</label>
+                        <div class="error" data-for="otp-code" aria-live="polite"></div>
+                    </div>
+                    <button type="button" id="verify-otp-btn" class="btn btn-primary" style="width: 100%;">Verify OTP</button>
+                    <button type="button" id="resend-otp-btn" class="btn btn-outline" style="width: 100%; margin-top: 10px;">Resend OTP</button>
+                </div>
+                <div id="otp-success" style="display: none; color: #4caf50; font-weight: bold; margin-top: 10px;">✓ Phone verified successfully</div>
+            </div>
+            
+            <!-- Patient Information Section -->
+            <h3>Patient Information</h3>
             <div class="field">
                 <input type="text" id="name" name="name" placeholder="" required>
                 <label for="name">Patient Name</label>
@@ -221,34 +246,59 @@
                 <div class="error" data-for="mail" aria-live="polite"></div>
             </div>
             <div class="field">
-                <input type="tel" id="mobile" name="mobile" placeholder="" required>
-                <label for="mobile">Mobile Number</label>
+                <input type="tel" id="mobile" name="mobile" placeholder="" required readonly style="background-color: #f5f5f5; cursor: not-allowed;">
+                <label for="mobile">Mobile Number (From OTP)</label>
                 <div class="error" data-for="mobile" aria-live="polite"></div>
             </div>
+            
+            <!-- Appointment Preferences Section -->
+            <h3>Appointment Preferences</h3>
+            <div class="field">
+                <select id="doctor" name="doctor_id">
+                    <option value="">-- Select Doctor (Optional) --</option>
+                    {% for doctor in doctors %}
+                        <option value="{{ doctor.id }}">{{ doctor.name }} - {{ doctor.specialization }}</option>
+                    {% endfor %}
+                </select>
+                <label for="doctor">Preferred Doctor</label>
+                <div class="error" data-for="doctor" aria-live="polite"></div>
+            </div>
+            <div class="field">
+                <select id="service" name="service_id">
+                    <option value="">-- Select Service (Optional) --</option>
+                    {% for service in services %}
+                        <option value="{{ service.id }}">{{ service.name }} ({{ service.duration_minutes }} min)</option>
+                    {% endfor %}
+                </select>
+                <label for="service">Preferred Service</label>
+                <div class="error" data-for="service" aria-live="polite"></div>
+            </div>
+            
+            <!-- Appointment Date & Time Section -->
+            <h3>Appointment Date & Time</h3>
             <div class="field">
                 <input type="date" id="date" name="date" required>
                 <label for="date">Preferred Date</label>
+                <small style="color: #666; display: block; margin-top: 5px;">* Closed on Sundays</small>
                 <div class="error" data-for="date" aria-live="polite"></div>
             </div>
-            <h3>Select Time</h3>
-
+            
+            <h3>Select Time Slot</h3>
             <div class="slot-grid" id="slot-grid">
             {% for slot in time_slots %}
               {% if slot in booked_slots %}
                 <button type="button" class="slot disabled" disabled>{{ slot }}</button>
               {% else %}
-                <button type="submit"
-                        class="slot"
-                        name="time_slot"
-                        value="{{ slot }}">
-                    {{ slot }}
-                </button>
+                <button type="button" class="slot" data-slot="{{ slot }}">{{ slot }}</button>
               {% endif %}
             {% endfor %}
             </div>
+            <input type="hidden" id="time_slot" name="time_slot" value="">
+            <input type="hidden" id="otp_verified" name="otp_verified" value="false">
+            <div class="error" data-for="time_slot" aria-live="polite"></div>
 
             <div class="form-actions">
-                <button type="submit" class="btn btn-primary">Submit</button>
+                <button type="submit" class="btn btn-primary" id="submit-btn" disabled>Submit Appointment</button>
             </div>
             <div id="form-feedback" class="form-feedback" role="status" aria-live="polite"></div>
             {% if error %}
