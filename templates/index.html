@@ -324,6 +324,53 @@
   </div>
 </section>
 
+<!-- Feedback Section -->
+<section class="feedback-section reveal" id="feedback" aria-labelledby="feedback-heading">
+  <div class="container">
+    <h2 id="feedback-heading">Share Your Feedback</h2>
+    <p class="feedback-subtitle">Tell us about your experience at Surabi Dental Clinic</p>
+    
+    <div class="feedback-container">
+      <div class="feedback-form-wrapper">
+        <form id="feedback-form" class="feedback-form">
+          <div class="feedback-field">
+            <label for="feedback-name">Your Name</label>
+            <input 
+              type="text" 
+              id="feedback-name" 
+              name="name" 
+              placeholder="Enter your name" 
+              required 
+              maxlength="100"
+            >
+          </div>
+          
+          <div class="feedback-field">
+            <label for="feedback-message">Your Feedback</label>
+            <textarea 
+              id="feedback-message" 
+              name="message" 
+              placeholder="Share your experience with us..." 
+              required 
+              maxlength="500"
+              rows="4"
+            ></textarea>
+          </div>
+          
+          <button type="submit" class="btn btn-primary">Submit Feedback</button>
+          <div id="feedback-status" class="feedback-status" role="status" aria-live="polite"></div>
+        </form>
+      </div>
+      
+      <div class="feedback-display-wrapper">
+        <div id="feedback-testimonial" class="feedback-testimonial">
+          <p class="feedback-placeholder">Submit your feedback to see it displayed here</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
 <!-- Footer -->
 <footer class="footer">
     <div class="footer-container">

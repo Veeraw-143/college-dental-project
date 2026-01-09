@@ -445,6 +445,124 @@ document.addEventListener('DOMContentLoaded', () => {
     if(idx>=0 && navLinks[idx]) navLinks[idx].classList.add('active');
   });
 
+  // Feedback form handler
+  const feedbackForm = document.getElementById('feedback-form');
+  const feedbackStatus = document.getElementById('feedback-status');
+  const feedbackTestimonial = document.getElementById('feedback-testimonial');
+  
+  if (feedbackForm) {
+    feedbackForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+      
+      try {
+        // Get form values
+        const name = document.getElementById('feedback-name').value.trim();
+        const message = document.getElementById('feedback-message').value.trim();
+        
+        // Validate inputs
+        if (!name || !message) {
+          showFeedbackError('Please fill in all fields');
+          return;
+        }
+        
+        if (name.length < 2) {
+          showFeedbackError('Name must be at least 2 characters');
+          return;
+        }
+        
+        if (message.length < 10) {
+          showFeedbackError('Feedback must be at least 10 characters');
+          return;
+        }
+        
+        // Clear previous error/status messages
+        feedbackStatus.textContent = '';
+        feedbackStatus.className = 'feedback-status';
+        
+        // Display the feedback in testimonial section
+        displayFeedback(name, message);
+        
+        // Show success message
+        showFeedbackSuccess('Thank you for your feedback!');
+        
+        // Reset form
+        feedbackForm.reset();
+        
+      } catch (error) {
+        console.error('Feedback form error:', error);
+        showFeedbackError('An error occurred. Please try again.');
+      }
+    });
+  }
+  
+  function displayFeedback(name, message) {
+    try {
+      // Display in feedback box (right column)
+      const feedbackContent = document.createElement('div');
+      feedbackContent.className = 'feedback-testimonial-content';
+      feedbackContent.innerHTML = `
+        <p class="feedback-testimonial-message">"${escapeHtml(message)}"</p>
+        <p class="feedback-testimonial-author">— ${escapeHtml(name)}</p>
+      `;
+      
+      // Clear placeholder and previous content, then display new feedback
+      feedbackTestimonial.innerHTML = '';
+      feedbackTestimonial.appendChild(feedbackContent);
+      
+      // Also add to testimonials section (What our patients say)
+      const testimonialsGrid = document.querySelector('.testimonials-grid');
+      if (testimonialsGrid) {
+        // Create new testimonial blockquote
+        const newTestimonial = document.createElement('blockquote');
+        newTestimonial.className = 'testimonial';
+        newTestimonial.innerHTML = `
+          <p>"${escapeHtml(message)}"</p>
+          <cite>— ${escapeHtml(name)}</cite>
+        `;
+        
+        // Add the new testimonial at the beginning
+        testimonialsGrid.insertBefore(newTestimonial, testimonialsGrid.firstChild);
+        
+        // Keep only the last 3 testimonials (removes the oldest one)
+        const testimonials = testimonialsGrid.querySelectorAll('.testimonial');
+        if (testimonials.length > 3) {
+          testimonials[testimonials.length - 1].remove();
+        }
+      }
+    } catch (error) {
+      console.error('Error displaying feedback:', error);
+      showFeedbackError('Error displaying feedback. Please try again.');
+    }
+  }
+  
+  function showFeedbackSuccess(message) {
+    feedbackStatus.textContent = message;
+    feedbackStatus.className = 'feedback-status success';
+    
+    // Auto-hide after 3 seconds
+    setTimeout(() => {
+      feedbackStatus.textContent = '';
+      feedbackStatus.className = 'feedback-status';
+    }, 3000);
+  }
+  
+  function showFeedbackError(message) {
+    feedbackStatus.textContent = message;
+    feedbackStatus.className = 'feedback-status error';
+  }
+  
+  // Helper function to escape HTML and prevent XSS
+  function escapeHtml(text) {
+    const map = {
+      '&': '&amp;',
+      '<': '&lt;',
+      '>': '&gt;',
+      '"': '&quot;',
+      "'": '&#039;'
+    };
+    return text.replace(/[&<>"']/g, (char) => map[char]);
+  }
+
   // Intersection Observer for reveal animations
   const revealElements = document.querySelectorAll('.reveal');
   if (revealElements.length > 0 && 'IntersectionObserver' in window) {

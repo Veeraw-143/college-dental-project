@@ -1133,6 +1133,218 @@ body.dark .map-placeholder {
   overflow:hidden;
 }
 
+/* Feedback Section */
+.feedback-section {
+  padding: 28px 12px;
+  background: linear-gradient(180deg, rgba(47, 164, 169, 0.05), transparent);
+}
+
+.feedback-section .container {
+  max-width: 1100px;
+  margin: 0 auto;
+}
+
+.feedback-section h2 {
+  text-align: center;
+  margin-bottom: 8px;
+  font-size: clamp(20px, 5vw, 28px);
+  color: var(--text-primary);
+}
+
+.feedback-subtitle {
+  text-align: center;
+  color: var(--text-secondary);
+  font-size: 14px;
+  margin-bottom: 24px;
+}
+
+.feedback-container {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+  align-items: start;
+}
+
+.feedback-form-wrapper,
+.feedback-display-wrapper {
+  padding: 20px;
+  border-radius: 12px;
+  background: linear-gradient(180deg, #ffffff, #f8ffff);
+  box-shadow: var(--shadow);
+  transition: all 0.28s ease;
+}
+
+body.dark .feedback-form-wrapper,
+body.dark .feedback-display-wrapper {
+  background: linear-gradient(180deg, rgba(10, 24, 30, 0.9), rgba(8, 20, 28, 0.9));
+  color: #e6eef6;
+}
+
+.feedback-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.feedback-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.feedback-field label {
+  font-weight: 600;
+  font-size: 13px;
+  color: var(--text-primary);
+  transition: color 0.28s ease;
+}
+
+body.dark .feedback-field label {
+  color: #e6eef6;
+}
+
+.feedback-field input,
+.feedback-field textarea {
+  padding: 10px 12px;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  font-family: inherit;
+  font-size: 13px;
+  color: var(--text-primary);
+  background: var(--card);
+  transition: all 0.28s ease;
+}
+
+body.dark .feedback-field input,
+body.dark .feedback-field textarea {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.15);
+  color: #e6eef6;
+}
+
+.feedback-field input:focus,
+.feedback-field textarea:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(47, 164, 169, 0.1);
+}
+
+body.dark .feedback-field input:focus,
+body.dark .feedback-field textarea:focus {
+  box-shadow: 0 0 0 3px rgba(47, 164, 169, 0.2);
+}
+
+.feedback-field textarea {
+  resize: vertical;
+  min-height: 100px;
+}
+
+.feedback-status {
+  display: none;
+  padding: 10px 12px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.feedback-status.success {
+  display: block;
+  background: rgba(34, 197, 94, 0.1);
+  color: #16a34a;
+  border: 1px solid rgba(34, 197, 94, 0.2);
+}
+
+.feedback-status.error {
+  display: block;
+  background: rgba(239, 68, 68, 0.1);
+  color: #dc2626;
+  border: 1px solid rgba(239, 68, 68, 0.2);
+}
+
+body.dark .feedback-status.success {
+  background: rgba(34, 197, 94, 0.15);
+  color: #86efac;
+}
+
+body.dark .feedback-status.error {
+  background: rgba(239, 68, 68, 0.15);
+  color: #fca5a5;
+}
+
+.feedback-testimonial {
+  min-height: 120px;
+  padding: 16px;
+  border-radius: 8px;
+  background: linear-gradient(180deg, rgba(47, 164, 169, 0.08), rgba(47, 164, 169, 0.04));
+  border: 1px solid rgba(47, 164, 169, 0.15);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  transition: all 0.28s ease;
+}
+
+body.dark .feedback-testimonial {
+  background: linear-gradient(180deg, rgba(47, 164, 169, 0.15), rgba(47, 164, 169, 0.08));
+  border-color: rgba(47, 164, 169, 0.3);
+}
+
+.feedback-placeholder {
+  color: var(--text-secondary);
+  font-size: 13px;
+  font-style: italic;
+}
+
+.feedback-testimonial-content {
+  animation: slideInFeedback 0.3s ease-out;
+}
+
+.feedback-testimonial-message {
+  font-style: italic;
+  font-size: 14px;
+  line-height: 1.6;
+  margin-bottom: 12px;
+  color: var(--text-primary);
+}
+
+body.dark .feedback-testimonial-message {
+  color: #e6eef6;
+}
+
+.feedback-testimonial-author {
+  font-weight: 600;
+  font-size: 13px;
+  color: var(--accent);
+}
+
+@keyframes slideInFeedback {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Responsive feedback section */
+@media (max-width: 768px) {
+  .feedback-container {
+    grid-template-columns: 1fr;
+  }
+
+  .feedback-form-wrapper,
+  .feedback-display-wrapper {
+    padding: 16px;
+  }
+
+  .feedback-field input,
+  .feedback-field textarea {
+    font-size: 14px;
+  }
+}
+
 /* Improvements for Touch devices */
 @media (hover: none) and (pointer: coarse) {
   .btn {
