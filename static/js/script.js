@@ -82,6 +82,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if(!themeToggle) return;
     themeToggle.textContent = document.body.classList.contains('dark') ? '☀️' : '🌙';
     themeToggle.setAttribute('aria-label', document.body.classList.contains('dark') ? 'Switch to light mode' : 'Switch to dark mode');
+  }
 
   // Helper: read cookie (for CSRF)
   function getCookie(name){
@@ -427,7 +428,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // tiny scrollspy to highlight nav
   const navLinks = document.querySelectorAll('.nav-link');
-  const sections = Array.from(navLinks).map(a => document.querySelector(a.getAttribute('href'))).filter(Boolean);
+  const sections = Array.from(navLinks)
+  .map(a => {
+    const id = a.getAttribute('href');
+    if (!id || id === '#') return null;
+    return document.querySelector(id);
+  })
+  .filter(Boolean);
+
   window.addEventListener('scroll', () => {
     let idx = sections.findIndex((s, i) => {
       const rect = s.getBoundingClientRect();
@@ -437,7 +445,36 @@ document.addEventListener('DOMContentLoaded', () => {
     if(idx>=0 && navLinks[idx]) navLinks[idx].classList.add('active');
   });
 
+  // Intersection Observer for reveal animations
+  const revealElements = document.querySelectorAll('.reveal');
+  if (revealElements.length > 0 && 'IntersectionObserver' in window) {
+    const revealObserver = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('in-view');
+          revealObserver.unobserve(entry.target);
+        }
+      });
+    }, {
+      threshold: 0.1,
+      rootMargin: '0px 0px -100px 0px'
+    });
+
+    revealElements.forEach(el => revealObserver.observe(el));
+  } else if (revealElements.length > 0) {
+    // Fallback for older browsers: show immediately
+    revealElements.forEach(el => el.classList.add('in-view'));
+  }
+
 });
+
+// Scroll to appointment section when "Book Appointment" button is clicked
+function scrollToAppointment() {
+  const appointmentSection = document.getElementById('appointment');
+  if (appointmentSection) {
+    appointmentSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+}
 
 // Expose a minimal API for potential reuse
 const AppointmentService = {
