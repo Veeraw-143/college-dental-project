@@ -1400,6 +1400,16 @@ body.dark .feedback-testimonial-message {
   opacity: 0.6;
 }
 
+/* Floating label for select elements */
+.field.filled select + label,
+.field select:focus + label {
+  top: -10px;
+  font-size: 11px;
+  color: var(--accent-2);
+  transform: translateY(0);
+}
+}
+
 /* Dark mode select */
 body.dark .field select {
   background-color: #1e1e1e;

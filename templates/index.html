@@ -211,13 +211,13 @@
         <form id="appointment-form" method="POST" action="{% url 'booking' %}">
             {% csrf_token %}
             
-            <!-- Phone Verification Section -->
+            <!-- Email Verification Section -->
             <div id="otp-section" class="otp-verification" style="background: #f0f4f8; padding: 20px; border-radius: 8px; margin-bottom: 20px; border-left: 4px solid #2fa4a9;">
-                <h3 style="margin-top: 0;">Phone Number Verification</h3>
+                <h3 style="margin-top: 0;">Email Verification</h3>
                 <div class="field">
-                    <input type="tel" id="mobile-otp" name="mobile-otp" placeholder="" maxlength="10" required>
-                    <label for="mobile-otp">Mobile Number (10 digits)</label>
-                    <div class="error" data-for="mobile-otp" aria-live="polite"></div>
+                    <input type="email" id="email-otp" name="email-otp" placeholder="" required>
+                    <label for="email-otp">Email Address</label>
+                    <div class="error" data-for="email-otp" aria-live="polite"></div>
                 </div>
                 <button type="button" id="send-otp-btn" class="btn btn-primary" style="width: 100%;">Send OTP</button>
                 
@@ -230,7 +230,7 @@
                     <button type="button" id="verify-otp-btn" class="btn btn-primary" style="width: 100%;">Verify OTP</button>
                     <button type="button" id="resend-otp-btn" class="btn btn-outline" style="width: 100%; margin-top: 10px;">Resend OTP</button>
                 </div>
-                <div id="otp-success" style="display: none; color: #4caf50; font-weight: bold; margin-top: 10px;">✓ Phone verified successfully</div>
+                <div id="otp-success" style="display: none; color: #4caf50; font-weight: bold; margin-top: 10px;">✓ Email verified successfully</div>
             </div>
             
             <!-- Patient Information Section -->
@@ -241,13 +241,13 @@
                 <div class="error" data-for="name" aria-live="polite"></div>
             </div>
             <div class="field">
-                <input type="email" id="mail" name="mail" placeholder="" required>
-                <label for="mail">Email Address</label>
+                <input type="email" id="mail" name="mail" placeholder="" required readonly style="background-color: #f5f5f5; cursor: not-allowed;">
+                <label for="mail">Email Address (From Verification)</label>
                 <div class="error" data-for="mail" aria-live="polite"></div>
             </div>
             <div class="field">
-                <input type="tel" id="mobile" name="mobile" placeholder="" required readonly style="background-color: #f5f5f5; cursor: not-allowed;">
-                <label for="mobile">Mobile Number (From OTP)</label>
+                <input type="tel" id="mobile" name="mobile" placeholder="" required>
+                <label for="mobile">Mobile Number (10 digits)</label>
                 <div class="error" data-for="mobile" aria-live="polite"></div>
             </div>
             

@@ -3,7 +3,7 @@ from django.urls import reverse
 import logging
 from project.models import bookings, Doctor, Service, OTPVerification
 from django.utils.html import format_html
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timedelta
 from django.utils import timezone
 
 logger = logging.getLogger(__name__)
@@ -65,12 +65,12 @@ class ServiceAdmin(admin.ModelAdmin):
 # ============= OTP VERIFICATION ADMIN =============
 @admin.register(OTPVerification)
 class OTPVerificationAdmin(admin.ModelAdmin):
-    list_display = ('phone_number', 'is_verified_display', 'attempts_display', 'is_valid_display', 'created_at')
-    search_fields = ('phone_number',)
+    list_display = ('email', 'is_verified_display', 'attempts_display', 'is_valid_display', 'created_at')
+    search_fields = ('email',)
     list_filter = ('is_verified', 'created_at')
     readonly_fields = ('created_at', 'expires_at')
     fieldsets = (
-        ('OTP Information', {'fields': ('phone_number', 'otp_code', 'is_verified')}),
+        ('OTP Information', {'fields': ('email', 'otp_code', 'is_verified')}),
         ('Attempts & Expiry', {'fields': ('attempts', 'created_at', 'expires_at')}),
     )
     can_delete = True

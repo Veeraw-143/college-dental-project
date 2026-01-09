@@ -13,7 +13,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const slotGrid = document.getElementById('slot-grid');
   
   // OTP Elements
-  const mobileOtpInput = document.getElementById('mobile-otp');
+  const emailOtpInput = document.getElementById('email-otp');
   const sendOtpBtn = document.getElementById('send-otp-btn');
   const otpInputSection = document.getElementById('otp-input-section');
   const otpCodeInput = document.getElementById('otp-code');
@@ -63,7 +63,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }, 5000);
   }
 
-  // Floating label support
+  // Floating label support for input fields
   document.querySelectorAll('.field input[type="text"], .field input[type="email"], .field input[type="tel"], .field input[type="date"]').forEach(input => {
     const field = input.closest('.field');
     if (!field) return;
@@ -74,6 +74,21 @@ document.addEventListener('DOMContentLoaded', () => {
     input.addEventListener('input', updateFilled);
     input.addEventListener('focus', updateFilled);
     input.addEventListener('blur', updateFilled);
+    setTimeout(updateFilled, 120);
+    updateFilled();
+  });
+
+  // Floating label support for select elements
+  document.querySelectorAll('.field select').forEach(select => {
+    const field = select.closest('.field');
+    if (!field) return;
+    function updateFilled(){
+      if (select.value && select.value.trim() !== '') field.classList.add('filled');
+      else field.classList.remove('filled');
+    }
+    select.addEventListener('change', updateFilled);
+    select.addEventListener('focus', updateFilled);
+    select.addEventListener('blur', updateFilled);
     setTimeout(updateFilled, 120);
     updateFilled();
   });
@@ -157,17 +172,17 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // ============= OTP FUNCTIONALITY =============
   function clearOtpSection() {
-    mobileOtpInput.value = '';
+    emailOtpInput.value = '';
     otpCodeInput.value = '';
     otpInputSection.style.display = 'none';
     otpSuccessDiv.style.display = 'none';
   }
 
   sendOtpBtn.addEventListener('click', () => {
-    const mobile = mobileOtpInput.value.trim();
+    const email = emailOtpInput.value.trim();
     
-    if (!mobile || mobile.length !== 10 || !/^\d+$/.test(mobile)) {
-      alert('Please enter a valid 10-digit phone number');
+    if (!email || !email.includes('@')) {
+      alert('Please enter a valid email address');
       return;
     }
 
@@ -180,7 +195,7 @@ document.addEventListener('DOMContentLoaded', () => {
         'Content-Type': 'application/x-www-form-urlencoded',
         'X-CSRFToken': getCookie('csrftoken')
       },
-      body: `mobile=${encodeURIComponent(mobile)}`
+      body: `email=${encodeURIComponent(email)}`
     })
     .then(r => r.json())
     .then(data => {
@@ -203,7 +218,7 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   verifyOtpBtn.addEventListener('click', () => {
-    const mobile = mobileOtpInput.value.trim();
+    const email = emailOtpInput.value.trim();
     const otp = otpCodeInput.value.trim();
 
     if (!otp || otp.length !== 6) {
@@ -220,17 +235,25 @@ document.addEventListener('DOMContentLoaded', () => {
         'Content-Type': 'application/x-www-form-urlencoded',
         'X-CSRFToken': getCookie('csrftoken')
       },
-      body: `mobile=${encodeURIComponent(mobile)}&otp=${encodeURIComponent(otp)}`
+      body: `email=${encodeURIComponent(email)}&otp=${encodeURIComponent(otp)}`
     })
     .then(r => r.json())
     .then(data => {
       if (data.success) {
         otpVerified = true;
-        mobileInput.value = mobile;
+        // Auto-fill email in patient information section (readonly)
+        const mailInput = document.getElementById('mail');
+        if (mailInput) {
+          mailInput.value = email;
+          const field = mailInput.closest('.field');
+          if (field) {
+            field.classList.add('filled');
+          }
+        }
         otpVerifiedInput.value = 'true';
         otpInputSection.style.display = 'none';
         otpSuccessDiv.style.display = 'block';
-        otpSuccessDiv.textContent = '✓ Phone verified successfully';
+        otpSuccessDiv.textContent = '✓ Email verified successfully';
         submitBtn.disabled = false;
         verifyOtpBtn.textContent = 'Verified ✓';
       } else {

@@ -44,15 +44,15 @@ def home(request):
 
 
 def send_otp(request):
-    """Send OTP to phone number via email (for demo purposes)"""
+    """Send OTP to email address"""
     if request.method == 'POST':
-        mobile = request.POST.get('mobile', '').strip()
+        email = request.POST.get('email', '').strip()
         
-        # Validate phone number (10 digits only)
-        if not mobile or not mobile.isdigit() or len(mobile) != 10:
+        # Validate email
+        if not email or '@' not in email:
             return JsonResponse({
                 'success': False,
-                'error': 'Please enter a valid 10-digit phone number'
+                'error': 'Please enter a valid email address'
             })
         
         try:
@@ -61,7 +61,7 @@ def send_otp(request):
             
             # Create or update OTP record
             otp_obj, created = OTPVerification.objects.get_or_create(
-                phone_number=mobile,
+                email=email,
                 defaults={
                     'otp_code': otp_code,
                     'expires_at': timezone.now() + timedelta(minutes=10)
@@ -76,13 +76,13 @@ def send_otp(request):
                 otp_obj.expires_at = timezone.now() + timedelta(minutes=10)
                 otp_obj.save()
             
-            # Send OTP via email (for demo - in production use SMS gateway)
+            # Send OTP via email
             from django.core.mail import send_mail
             subject = "Your OTP for Surabi Dental Clinic Appointment"
             message = f"""
 Hello,
 
-Your OTP for verifying your phone number at Surabi Dental Clinic is:
+Your OTP for verifying your email at Surabi Dental Clinic is:
 
 {otp_code}
 
@@ -94,25 +94,29 @@ Best regards,
 Surabi Dental Care Team
             """
             
-            # Send to admin email as demo (in production, integrate with SMS gateway)
-            admin_email = 'pulipandi8158@gmail.com'
+            # Send OTP to user email
             send_mail(
                 subject,
                 message,
                 'noreply@surabidental.com',
-                [admin_email],
+                [email],
                 fail_silently=False,
             )
             
-            logger.info(f'OTP sent for phone: {mobile}. OTP: {otp_code}')
+            # Also print to console for development/testing
+            print(f"\n{'='*50}")
+            print(f"OTP for {email}: {otp_code}")
+            print(f"{'='*50}\n")
+            logger.info(f'OTP sent to email: {email}. OTP: {otp_code}')
             
             return JsonResponse({
                 'success': True,
-                'message': f'OTP sent to {mobile}. Check console/email for OTP code.'
+                'message': f'OTP sent to {email}. Check your email for the OTP code.'
             })
         
         except Exception as e:
             logger.error(f'Failed to send OTP: {str(e)}')
+            print(f"OTP Error: {str(e)}")
             return JsonResponse({
                 'success': False,
                 'error': f'Failed to send OTP: {str(e)}'
@@ -122,22 +126,22 @@ Surabi Dental Care Team
 
 
 def verify_otp(request):
-    """Verify OTP sent to phone number"""
+    """Verify OTP sent to email"""
     if request.method == 'POST':
-        mobile = request.POST.get('mobile', '').strip()
+        email = request.POST.get('email', '').strip()
         otp_code = request.POST.get('otp', '').strip()
         
-        if not mobile or not otp_code:
+        if not email or not otp_code:
             return JsonResponse({
                 'success': False,
-                'error': 'Phone number and OTP are required'
+                'error': 'Email and OTP are required'
             })
         
         try:
-            otp_obj = OTPVerification.objects.get(phone_number=mobile)
+            otp_obj = OTPVerification.objects.get(email=email)
             
             # Check if OTP is expired
-            if otp_obj.is_expired():
+            if timezone.now() > otp_obj.expires_at:
                 return JsonResponse({
                     'success': False,
                     'error': 'OTP has expired. Please request a new one.'
@@ -491,3 +495,56 @@ def manage_appointments(request):
     """Management view for checking appointment status (for patients)"""
     context = {}
     return render(request, 'manage_appointments.html', context)
+
+
+def admin_dashboard(request):
+    """Admin dashboard view"""
+    from django.contrib.auth.decorators import login_required, user_passes_test
+    from django.shortcuts import redirect
+    
+    # If user is not authenticated, redirect to Django admin login
+    if not request.user.is_authenticated:
+        return redirect('/admin-panel/login/?next=/admin/')
+    
+    # If user is not staff, deny access
+    if not request.user.is_staff:
+        return HttpResponseForbidden('You do not have permission to access this page.')
+    
+    context = {}
+    return render(request, 'admin_dashboard.html', context)
+
+
+def admin_stats_api(request):
+    """API endpoint to get admin dashboard statistics"""
+    if not request.user.is_staff:
+        return JsonResponse({'error': 'Unauthorized'}, status=403)
+    
+    try:
+        from django.db.models import Q
+        
+        total_bookings = bookings.objects.count()
+        total_doctors = Doctor.objects.filter(is_active=True).count()
+        total_services = Service.objects.filter(is_active=True).count()
+        pending_approvals = bookings.objects.filter(status='pending').count()
+        
+        return JsonResponse({
+            'total_bookings': total_bookings,
+            'total_doctors': total_doctors,
+            'total_services': total_services,
+            'pending_approvals': pending_approvals,
+        })
+    except Exception as e:
+        logger.error(f'Error in admin_stats_api: {e}')
+        return JsonResponse({'error': str(e)}, status=500)
+    
+from django.contrib.auth import logout
+from django.contrib.auth.decorators import login_required
+from django.shortcuts import redirect
+
+@login_required(login_url='/admin/login/')
+def logout_view(request):
+    """Logout view for admin panel"""
+    
+    
+    logout(request)
+    return redirect('/admin/login/')

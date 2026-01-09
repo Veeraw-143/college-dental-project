@@ -13,4 +13,7 @@ urlpatterns = [
     path('api/send-otp/', views.send_otp, name='send_otp'),
     path('api/verify-otp/', views.verify_otp, name='verify_otp'),
     path('manage-appointments/', views.manage_appointments, name='manage_appointments'),
+    path('admin-dashboard/', views.admin_dashboard, name='admin_dashboard'),
+    path('api/admin-stats/', views.admin_stats_api, name='admin_stats_api'),
+    path('admin-panel/logout/', views.logout_view, name='admin_logout'),
 ]

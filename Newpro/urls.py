@@ -16,8 +16,10 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path, include
+from project import views as project_views
 
 urlpatterns = [
+    path('admin-panel/', project_views.admin_dashboard, name='admin_dashboard_root'),
     path('admin/', admin.site.urls),
     path('', include('project.urls')),
 ]

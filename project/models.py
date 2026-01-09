@@ -61,7 +61,7 @@ class Service(models.Model):
 
 
 class OTPVerification(models.Model):
-    phone_number = models.CharField(max_length=15)
+    email = models.EmailField(null=True, blank=True)
     otp_code = models.CharField(max_length=6)
     is_verified = models.BooleanField(default=False)
     attempts = models.IntegerField(default=0)
@@ -74,7 +74,7 @@ class OTPVerification(models.Model):
         ordering = ['-created_at']
 
     def __str__(self):
-        return f"OTP for {self.phone_number}"
+        return f"OTP for {self.email}"
 
     def is_valid(self):
         """Check if OTP is still valid (not expired, verified, and attempts < 5)"""
