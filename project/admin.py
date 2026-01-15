@@ -1,7 +1,7 @@
 from django.contrib import admin, messages
 from django.urls import reverse
 import logging
-from project.models import bookings, Doctor, Service, OTPVerification
+from project.models import bookings, Doctor, Service, OTPVerification, Feedback
 from django.utils.html import format_html
 from datetime import datetime, timedelta
 from django.utils import timezone
@@ -12,7 +12,7 @@ logger = logging.getLogger(__name__)
 # ============= DOCTOR ADMIN =============
 @admin.register(Doctor)
 class DoctorAdmin(admin.ModelAdmin):
-    list_display = ('name', 'specialization', 'experience_display', 'email', 'is_active_display', 'created_at')
+    list_display = ('name', 'specialization', 'availability_display', 'experience_display', 'email', 'is_active_display', 'created_at')
     search_fields = ('name', 'specialization', 'email')
     list_filter = ('is_active', 'created_at')
     readonly_fields = ('created_at',)
@@ -20,12 +20,24 @@ class DoctorAdmin(admin.ModelAdmin):
         ('Doctor Information', {'fields': ('name', 'specialization', 'bio')}),
         ('Contact Details', {'fields': ('email', 'phone')}),
         ('Professional Info', {'fields': ('experience_years', 'is_active')}),
+        ('Availability', {
+            'fields': ('availability_days',),
+            'description': 'Enter days separated by commas (e.g., Mon,Tue,Wed,Thu,Fri,Sat)'
+        }),
         ('Timestamps', {'fields': ('created_at',)}),
     )
 
     def experience_display(self, obj):
         return f"{obj.experience_years} years"
     experience_display.short_description = 'Experience'
+
+    def availability_display(self, obj):
+        days = obj.get_available_days()
+        if len(days) == 7:
+            return '✓ All Days'
+        days_str = ', '.join(days)
+        return f"📅 {days_str}"
+    availability_display.short_description = 'Available Days'
 
     def is_active_display(self, obj):
         color = 'green' if obj.is_active else 'red'
@@ -318,6 +330,31 @@ class BookingsAdmin(admin.ModelAdmin):
         if failed:
             self.message_user(request, f'✗ Failed to send reminder to {len(failed)} patient(s)', level=messages.ERROR)
     send_reminder_email.short_description = '✉ Send reminder email'
+
+
+# ============= FEEDBACK ADMIN =============
+@admin.register(Feedback)
+class FeedbackAdmin(admin.ModelAdmin):
+    list_display = ('name', 'message_preview', 'is_active_display', 'created_at')
+    search_fields = ('name', 'message')
+    list_filter = ('is_active', 'created_at')
+    readonly_fields = ('created_at',)
+    fieldsets = (
+        ('Feedback Information', {'fields': ('name', 'message')}),
+        ('Status', {'fields': ('is_active',)}),
+        ('Timestamps', {'fields': ('created_at',)}),
+    )
+
+    def message_preview(self, obj):
+        preview = obj.message[:50] + '...' if len(obj.message) > 50 else obj.message
+        return preview
+    message_preview.short_description = 'Message'
+
+    def is_active_display(self, obj):
+        color = 'green' if obj.is_active else 'red'
+        status = '✓ Active' if obj.is_active else '✗ Inactive'
+        return format_html('<span style="color: {}; font-weight: bold;">{}</span>', color, status)
+    is_active_display.short_description = 'Status'
 
 
 # Customize the admin site

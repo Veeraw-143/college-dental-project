@@ -11,6 +11,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const serviceCards = document.querySelectorAll('.service-card');
   const dateInput = document.getElementById('date');
   const slotGrid = document.getElementById('slot-grid');
+  const doctorSelect = document.getElementById('doctor');
   
   // OTP Elements
   const emailOtpInput = document.getElementById('email-otp');
@@ -282,8 +283,14 @@ document.addEventListener('DOMContentLoaded', () => {
     const selectedDate = e.target.value;
     if (!selectedDate) return;
 
+    const doctorId = doctorSelect?.value || '';
+    let url = `/api/booked-slots/?date=${selectedDate}`;
+    if (doctorId) {
+      url += `&doctor_id=${doctorId}`;
+    }
+
     try {
-      const response = await fetch(`/api/booked-slots/?date=${selectedDate}`);
+      const response = await fetch(url);
       const data = await response.json();
 
       if (data.is_sunday) {
@@ -293,9 +300,25 @@ document.addEventListener('DOMContentLoaded', () => {
         return;
       }
 
+      if (data.doctor_not_available) {
+        alert(data.message || 'Selected doctor is not available on this date.');
+        dateInput.value = '';
+        slotGrid.innerHTML = `<p style="color: #f44336; text-align: center; grid-column: 1/-1;">${data.message || 'Doctor not available'}</p>`;
+        return;
+      }
+
       updateSlots(data);
     } catch (err) {
       console.error('Error fetching slots:', err);
+    }
+  });
+
+  // ============= DOCTOR CHANGE HANDLER =============
+  doctorSelect?.addEventListener('change', async (e) => {
+    // When doctor is changed, refresh the available slots for selected date
+    if (dateInput && dateInput.value) {
+      // Trigger date change to refresh slots
+      dateInput.dispatchEvent(new Event('change', { bubbles: true }));
     }
   });
 
@@ -449,7 +472,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // ============= PHONE FORMATTING =============
-  mobileOtpInput?.addEventListener('input', (e) => {
+  mobileInput?.addEventListener('input', (e) => {
     e.target.value = e.target.value.replace(/[^0-9]/g, '').slice(0, 10);
   });
 
@@ -515,3 +538,156 @@ const AppointmentService = {
     console.log('Appointment Data:', data);
   }
 };
+
+// ============= FEEDBACK SECTION =============
+document.addEventListener('DOMContentLoaded', () => {
+  const feedbackForm = document.getElementById('feedback-form');
+  const feedbackStatus = document.getElementById('feedback-status');
+  const feedbackTestimonial = document.getElementById('feedback-testimonial');
+
+  if (feedbackForm) {
+    feedbackForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      
+      const name = document.getElementById('feedback-name').value.trim();
+      const message = document.getElementById('feedback-message').value.trim();
+      
+      if (!name || !message) {
+        feedbackStatus.textContent = 'Please fill in all fields';
+        feedbackStatus.style.color = 'red';
+        return;
+      }
+
+      feedbackStatus.textContent = 'Submitting feedback...';
+      feedbackStatus.style.color = '#2fa4a9';
+
+      try {
+        const formData = new FormData();
+        formData.append('name', name);
+        formData.append('message', message);
+        formData.append('csrfmiddlewaretoken', getCookie('csrftoken'));
+
+        const response = await fetch('/api/submit-feedback/', {
+          method: 'POST',
+          body: formData
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+          feedbackStatus.textContent = data.message;
+          feedbackStatus.style.color = 'green';
+          feedbackForm.reset();
+          
+          // Display the new feedback in the feedback section
+          displayNewFeedback(data.feedback);
+          
+          // Reload all feedback and testimonials
+          loadAllFeedback();
+          
+          setTimeout(() => {
+            feedbackStatus.textContent = '';
+          }, 3000);
+        } else {
+          feedbackStatus.textContent = 'Error: ' + (data.error || 'Unknown error');
+          feedbackStatus.style.color = 'red';
+        }
+      } catch (error) {
+        console.error('Feedback submission error:', error);
+        feedbackStatus.textContent = 'An error occurred. Please try again.';
+        feedbackStatus.style.color = 'red';
+      }
+    });
+
+    // Load existing feedback on page load
+    loadAllFeedback();
+  }
+});
+
+function displayNewFeedback(feedback) {
+  const feedbackTestimonial = document.getElementById('feedback-testimonial');
+  if (feedbackTestimonial) {
+    const feedbackBox = document.createElement('blockquote');
+    feedbackBox.className = 'feedback-box';
+    feedbackBox.innerHTML = `
+      <p>"${feedback.message}"</p>
+      <cite>— ${feedback.name}</cite>
+    `;
+    
+    // Clear placeholder if it exists
+    const placeholder = feedbackTestimonial.querySelector('.feedback-placeholder');
+    if (placeholder) {
+      placeholder.remove();
+    }
+    
+    feedbackTestimonial.appendChild(feedbackBox);
+  }
+}
+
+function loadAllFeedback() {
+  fetch('/api/get-feedback/')
+    .then(response => response.json())
+    .then(data => {
+      if (data.success && data.feedbacks.length > 0) {
+        // Update testimonials section
+        updateTestimonials(data.feedbacks);
+        
+        // Update feedback display box
+        updateFeedbackDisplay(data.feedbacks);
+      }
+    })
+    .catch(error => console.error('Error loading feedback:', error));
+}
+
+function updateTestimonials(feedbacks) {
+  const testimonialsGrid = document.querySelector('.testimonials-grid');
+  if (testimonialsGrid) {
+    // Add feedback as testimonials
+    feedbacks.forEach(feedback => {
+      // Check if feedback already exists
+      const existingFeedback = testimonialsGrid.querySelector(`[data-feedback-id="${feedback.id}"]`);
+      if (!existingFeedback) {
+        const testimonialBlock = document.createElement('blockquote');
+        testimonialBlock.className = 'testimonial';
+        testimonialBlock.setAttribute('data-feedback-id', feedback.id);
+        testimonialBlock.innerHTML = `
+          <p>"${feedback.message}"</p>
+          <cite>— ${feedback.name}</cite>
+        `;
+        testimonialsGrid.appendChild(testimonialBlock);
+      }
+    });
+  }
+}
+
+function updateFeedbackDisplay(feedbacks) {
+  const feedbackTestimonial = document.getElementById('feedback-testimonial');
+  if (feedbackTestimonial) {
+    // Clear existing feedback boxes (keep form intact)
+    const feedbackBoxes = feedbackTestimonial.querySelectorAll('.feedback-box');
+    feedbackBoxes.forEach(box => box.remove());
+    
+    // Remove placeholder
+    const placeholder = feedbackTestimonial.querySelector('.feedback-placeholder');
+    if (placeholder) {
+      placeholder.remove();
+    }
+    
+    // Add feedback boxes
+    feedbacks.slice(0, 3).forEach(feedback => {
+      const feedbackBox = document.createElement('blockquote');
+      feedbackBox.className = 'feedback-box';
+      feedbackBox.innerHTML = `
+        <p>"${feedback.message}"</p>
+        <cite>— ${feedback.name}</cite>
+      `;
+      feedbackTestimonial.appendChild(feedbackBox);
+    });
+  }
+}
+
+// Helper function
+function getCookie(name) {
+  const m = document.cookie.match('(^|;)\\s*' + name + '\\s*=\\s*([^;]+)');
+  return m ? m.pop() : '';
+}

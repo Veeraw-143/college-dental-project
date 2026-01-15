@@ -363,6 +363,7 @@ def get_doctors_and_services(request):
 def get_booked_slots(request):
     """API endpoint to get booked slots for a specific date"""
     date_str = request.GET.get('date')
+    doctor_id = request.GET.get('doctor_id')  # Optional: filter by doctor
     
     if not date_str:
         return JsonResponse({'error': 'Date is required'}, status=400)
@@ -371,7 +372,7 @@ def get_booked_slots(request):
         appt_date = _date.fromisoformat(date_str)
     except Exception:
         return JsonResponse({'error': 'Invalid date format'}, status=400)
-    
+
     # Check if date is Sunday
     if is_sunday(appt_date):
         return JsonResponse({
@@ -383,13 +384,42 @@ def get_booked_slots(request):
             'is_sunday': True,
             'message': 'Clinic is closed on Sundays'
         })
+
+    # Check doctor availability on the selected day
+    day_name = appt_date.strftime('%a')  # Mon, Tue, Wed, etc.
+    doctor_not_available = False
+    doctor_message = ''
+    
+    if doctor_id:
+        try:
+            doctor = Doctor.objects.get(id=doctor_id, is_active=True)
+            if not doctor.is_available_on_day(day_name):
+                doctor_not_available = True
+                doctor_message = f'{doctor.name} is not available on {day_name}. Available days: {doctor.availability_days}'
+                return JsonResponse({
+                    'date': date_str,
+                    'booked_slots': TIME_SLOTS,  # All slots blocked
+                    'available_slots': [],
+                    'current_time': datetime.now().strftime("%I:%M %p"),
+                    'is_today': appt_date == _date.today(),
+                    'is_sunday': False,
+                    'doctor_not_available': True,
+                    'message': doctor_message
+                })
+        except Doctor.DoesNotExist:
+            pass
     
     # Get booked slots
     booked_times = bookings.objects.filter(
         appointment_date=appt_date,
         status__in=[bookings.STATUS_PENDING, bookings.STATUS_ACCEPTED]
-    ).values_list('time', flat=True)
+    )
     
+    # Filter by doctor if specified
+    if doctor_id:
+        booked_times = booked_times.filter(preferred_doctor_id=doctor_id)
+    
+    booked_times = booked_times.values_list('time', flat=True)
     booked_slots = [datetime.combine(_date.min, t).strftime("%I:%M %p") for t in booked_times]
     current_time = datetime.now().strftime("%I:%M %p")
     is_today = appt_date == _date.today()
@@ -520,18 +550,47 @@ def admin_stats_api(request):
         return JsonResponse({'error': 'Unauthorized'}, status=403)
     
     try:
-        from django.db.models import Q
+        from django.db.models import Q, Count
         
         total_bookings = bookings.objects.count()
         total_doctors = Doctor.objects.filter(is_active=True).count()
         total_services = Service.objects.filter(is_active=True).count()
         pending_approvals = bookings.objects.filter(status='pending').count()
         
+        # Get bookings by status for pie chart
+        bookings_by_status = bookings.objects.values('status').annotate(count=Count('id')).order_by('status')
+        
+        # Get doctor-wise appointments count
+        doctor_appointments = []
+        for doctor in Doctor.objects.filter(is_active=True).order_by('name'):
+            count = bookings.objects.filter(preferred_doctor=doctor).count()
+            doctor_appointments.append({
+                'doctor_name': doctor.name,
+                'count': count
+            })
+        
+        # Get monthly booking trend
+        from django.db.models.functions import TruncMonth
+        monthly_bookings = bookings.objects.annotate(
+            month=TruncMonth('created_at')
+        ).values('month').annotate(count=Count('id')).order_by('month')
+        
+        monthly_data = []
+        for item in monthly_bookings:
+            if item['month']:
+                monthly_data.append({
+                    'month': item['month'].strftime('%b %Y'),
+                    'count': item['count']
+                })
+        
         return JsonResponse({
             'total_bookings': total_bookings,
             'total_doctors': total_doctors,
             'total_services': total_services,
             'pending_approvals': pending_approvals,
+            'bookings_by_status': list(bookings_by_status),
+            'doctor_appointments': doctor_appointments,
+            'monthly_bookings': monthly_data,
         })
     except Exception as e:
         logger.error(f'Error in admin_stats_api: {e}')
@@ -548,3 +607,81 @@ def logout_view(request):
     
     logout(request)
     return redirect('/admin/login/')
+
+
+# ============= FEEDBACK VIEWS =============
+
+def submit_feedback(request):
+    """Handle feedback submission via AJAX"""
+    if request.method == 'POST':
+        name = request.POST.get('name', '').strip()
+        message = request.POST.get('message', '').strip()
+        
+        # Validate input
+        if not name or not message:
+            return JsonResponse({
+                'success': False,
+                'error': 'Please provide both name and feedback message'
+            })
+        
+        if len(message) > 500:
+            return JsonResponse({
+                'success': False,
+                'error': 'Feedback message is too long (max 500 characters)'
+            })
+        
+        try:
+            # Create feedback entry
+            feedback = Feedback.objects.create(
+                name=name,
+                message=message,
+                is_active=True
+            )
+            
+            return JsonResponse({
+                'success': True,
+                'message': 'Thank you for your feedback!',
+                'feedback': {
+                    'id': feedback.id,
+                    'name': feedback.name,
+                    'message': feedback.message,
+                    'created_at': feedback.created_at.strftime('%Y-%m-%d %H:%M:%S')
+                }
+            })
+        except Exception as e:
+            logger.exception('Error creating feedback: %s', e)
+            return JsonResponse({
+                'success': False,
+                'error': 'An error occurred while submitting your feedback'
+            })
+    
+    return JsonResponse({
+        'success': False,
+        'error': 'Invalid request method'
+    })
+
+
+def get_all_feedback(request):
+    """Get all active feedback entries for display"""
+    try:
+        feedbacks = Feedback.objects.filter(is_active=True).order_by('-created_at')
+        feedback_list = [
+            {
+                'id': fb.id,
+                'name': fb.name,
+                'message': fb.message,
+                'created_at': fb.created_at.strftime('%Y-%m-%d %H:%M:%S')
+            }
+            for fb in feedbacks
+        ]
+        
+        return JsonResponse({
+            'success': True,
+            'feedbacks': feedback_list
+        })
+    except Exception as e:
+        logger.exception('Error retrieving feedback: %s', e)
+        return JsonResponse({
+            'success': False,
+            'error': 'An error occurred while retrieving feedback'
+        })

@@ -16,4 +16,8 @@ urlpatterns = [
     path('admin-dashboard/', views.admin_dashboard, name='admin_dashboard'),
     path('api/admin-stats/', views.admin_stats_api, name='admin_stats_api'),
     path('admin-panel/logout/', views.logout_view, name='admin_logout'),
+    
+    # Feedback URLs
+    path('api/submit-feedback/', views.submit_feedback, name='submit_feedback'),
+    path('api/get-feedback/', views.get_all_feedback, name='get_all_feedback'),
 ]

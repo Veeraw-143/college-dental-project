@@ -25,6 +25,16 @@ except ImportError as e:
 # ============= NEW MODELS =============
 
 class Doctor(models.Model):
+    DAY_CHOICES = [
+        ('Mon', 'Monday'),
+        ('Tue', 'Tuesday'),
+        ('Wed', 'Wednesday'),
+        ('Thu', 'Thursday'),
+        ('Fri', 'Friday'),
+        ('Sat', 'Saturday'),
+        ('Sun', 'Sunday'),
+    ]
+    
     name = models.CharField(max_length=100)
     specialization = models.CharField(max_length=100)
     email = models.EmailField()
@@ -32,6 +42,11 @@ class Doctor(models.Model):
     experience_years = models.IntegerField(default=0)
     bio = models.TextField(blank=True, null=True)
     is_active = models.BooleanField(default=True)
+    availability_days = models.CharField(
+        max_length=50,
+        default='Mon,Tue,Wed,Thu,Fri,Sat',
+        help_text='Comma-separated days (Mon,Tue,Wed,Thu,Fri,Sat,Sun)'
+    )
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
@@ -41,6 +56,14 @@ class Doctor(models.Model):
 
     def __str__(self):
         return f"{self.name} - {self.specialization}"
+    
+    def get_available_days(self):
+        """Return list of available days for this doctor"""
+        return [day.strip() for day in self.availability_days.split(',')]
+    
+    def is_available_on_day(self, day_name):
+        """Check if doctor is available on a specific day (e.g., 'Mon', 'Tue')"""
+        return day_name in self.get_available_days()
 
 
 class Service(models.Model):
@@ -374,5 +397,22 @@ class bookings(models.Model):
         except Exception as e:
             logger.exception('Failed to send reminder email: %s', e)
             raise
+
+
+# ============= FEEDBACK MODEL =============
+
+class Feedback(models.Model):
+    name = models.CharField(max_length=100)
+    message = models.TextField(max_length=500)
+    created_at = models.DateTimeField(auto_now_add=True)
+    is_active = models.BooleanField(default=True)
+
+    class Meta:
+        verbose_name = 'Feedback'
+        verbose_name_plural = 'Feedback'
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f"{self.name} - {self.created_at.strftime('%Y-%m-%d %H:%M')}"
 
 

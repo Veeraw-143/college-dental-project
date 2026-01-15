@@ -1163,6 +1163,7 @@ body.dark .map-placeholder {
   grid-template-columns: 1fr 1fr;
   gap: 24px;
   align-items: start;
+
 }
 
 .feedback-form-wrapper,
@@ -1317,6 +1318,53 @@ body.dark .feedback-testimonial-message {
   color: var(--accent);
 }
 
+.feedback-box {
+  display: inline-block;
+  padding: 12px 16px;
+  margin: 8px 4px;
+  border-radius: 6px;
+  background: linear-gradient(180deg, rgba(47, 164, 169, 0.1), rgba(47, 164, 169, 0.05));
+  border: 1px solid rgba(47, 164, 169, 0.2);
+  font-size: 13px;
+  font-style: italic;
+  max-width: 200px;
+  transition: all 0.28s ease;
+  animation: slideInFeedback 0.3s ease-out;
+}
+
+.feedback-box:hover {
+  background: linear-gradient(180deg, rgba(47, 164, 169, 0.15), rgba(47, 164, 169, 0.1));
+  border-color: rgba(47, 164, 169, 0.3);
+  transform: translateY(-2px);
+}
+
+body.dark .feedback-box {
+  background: linear-gradient(180deg, rgba(47, 164, 169, 0.2), rgba(47, 164, 169, 0.1));
+  border-color: rgba(47, 164, 169, 0.4);
+}
+
+body.dark .feedback-box:hover {
+  background: linear-gradient(180deg, rgba(47, 164, 169, 0.25), rgba(47, 164, 169, 0.15));
+  border-color: rgba(47, 164, 169, 0.5);
+}
+
+.feedback-box p {
+  margin: 0 0 8px 0;
+  line-height: 1.4;
+  color: var(--text-primary);
+}
+
+body.dark .feedback-box p {
+  color: #e6eef6;
+}
+
+.feedback-box cite {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--accent);
+  font-style: normal;
+}
+
 @keyframes slideInFeedback {
   from {
     opacity: 0;
@@ -1407,7 +1455,6 @@ body.dark .feedback-testimonial-message {
   font-size: 11px;
   color: var(--accent-2);
   transform: translateY(0);
-}
 }
 
 /* Dark mode select */
@@ -1532,3 +1579,5 @@ body.dark #resend-otp-btn:hover {
   .field select {
     padding: 12px 32px 12px 12px;
     font-size: 14px;
+  }
+}
