@@ -1,0 +1,164 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Services - Surabi Dental Clinic{% endblock %}
+
+{% block content %}
+<!-- Hero Banner -->
+<section class="page-banner" style="background: linear-gradient(135deg, #2fa4a9, #1e7c81); color: white; padding: 60px 20px; text-align: center;">
+    <h1 style="font-size: 48px; margin-bottom: 10px;">Our Services</h1>
+    <p style="font-size: 18px; opacity: 0.95;">Comprehensive dental care for the whole family</p>
+</section>
+
+<!-- Services Section -->
+<section class="services" style="padding: 40px 12px;">
+    <div class="services-header">
+        <h2>Comprehensive Dental Services</h2>
+        <p class="services-subtitle">State-of-the-art treatments delivered with expertise and compassion</p>
+    </div>
+    <div class="service-box">
+        <article class="service-card" tabindex="0" id="cleaning" data-service="Professional Cleaning">
+            <div class="service-icon">🦷</div>
+            <h3>Professional Teeth Cleaning</h3>
+            <div class="service-description">
+                <p><strong>Preventive Care & Scale & Polish</strong></p>
+                <p>Our certified hygienists perform thorough cleanings to remove plaque, tartar, and stains using advanced ultrasonic technology. Regular cleanings prevent cavities, gum disease, and maintain optimal oral health.</p>
+                <ul class="service-features">
+                    <li>Ultrasonic scaling & polishing</li>
+                    <li>Cavity detection & prevention</li>
+                    <li>Gum disease prevention</li>
+                    <li>Professional fluoride treatment</li>
+                </ul>
+            </div>
+        </article>
+
+        <article class="service-card" tabindex="0" id="whitening" data-service="Teeth Whitening">
+            <div class="service-icon">✨</div>
+            <h3>Professional Teeth Whitening</h3>
+            <div class="service-description">
+                <p><strong>Cosmetic Enhancement & Smile Brightening</strong></p>
+                <p>Achieve a brighter, more confident smile with our professional whitening treatments. Using safe, proven bleaching agents and advanced LED technology, we deliver results that last.</p>
+                <ul class="service-features">
+                    <li>In-office whitening treatments</li>
+                    <li>Take-home whitening kits</li>
+                    <li>Stain removal & tooth brightening</li>
+                    <li>Long-lasting results</li>
+                </ul>
+            </div>
+        </article>
+
+        <article class="service-card" tabindex="0" id="root-canal" data-service="Root Canal Therapy">
+            <div class="service-icon">🔧</div>
+            <h3>Endodontic Root Canal Therapy</h3>
+            <div class="service-description">
+                <p><strong>Pain Relief & Tooth Preservation</strong></p>
+                <p>Root canal therapy saves teeth that might otherwise be lost. We use advanced techniques and modern equipment to remove infected pulp, alleviate pain, and restore tooth function with high success rates.</p>
+                <ul class="service-features">
+                    <li>Pain-free root canal treatment</li>
+                    <li>Digital imaging & diagnosis</li>
+                    <li>Tooth preservation techniques</li>
+                    <li>Long-term durability</li>
+                </ul>
+            </div>
+        </article>
+
+        <article class="service-card" tabindex="0" id="pediatric" data-service="Pediatric Dentistry">
+            <div class="service-icon">👶</div>
+            <h3>Pediatric Dentistry</h3>
+            <div class="service-description">
+                <p><strong>Dental Care for Children</strong></p>
+                <p>We create a comfortable, friendly environment for children. Our pediatric specialists are trained to handle young patients with patience and care, making dental visits fun and stress-free.</p>
+                <ul class="service-features">
+                    <li>Child-friendly treatments</li>
+                    <li>Cavity prevention for kids</li>
+                    <li>Fluoride treatments</li>
+                    <li>Oral health education</li>
+                </ul>
+            </div>
+        </article>
+
+        <article class="service-card" tabindex="0" id="crowns" data-service="Crowns & Bridges">
+            <div class="service-icon">👑</div>
+            <h3>Crowns, Bridges & Restorations</h3>
+            <div class="service-description">
+                <p><strong>Tooth Restoration & Aesthetic Solutions</strong></p>
+                <p>Restore damaged or missing teeth with custom crowns and bridges. Our restorations look natural, feel comfortable, and last for many years with proper care.</p>
+                <ul class="service-features">
+                    <li>Custom crown fabrication</li>
+                    <li>Bridge replacements</li>
+                    <li>Natural-looking restorations</li>
+                    <li>Ceramic & metal options</li>
+                </ul>
+            </div>
+        </article>
+
+        <article class="service-card" tabindex="0" id="implants" data-service="Implants & Prosthodontics">
+            <div class="service-icon">💎</div>
+            <h3>Dental Implants & Prosthodontics</h3>
+            <div class="service-description">
+                <p><strong>Advanced Tooth Replacement</strong></p>
+                <p>Dental implants are the gold standard for replacing missing teeth. They look, feel, and function like natural teeth, providing a permanent solution that preserves bone structure.</p>
+                <ul class="service-features">
+                    <li>Titanium implant placement</li>
+                    <li>Complete mouth rehabilitation</li>
+                    <li>Implant crowns & dentures</li>
+                    <li>Cosmetic enhancement</li>
+                </ul>
+            </div>
+        </article>
+
+        <article class="service-card" tabindex="0" id="orthodontics" data-service="Orthodontics">
+            <div class="service-icon">🦴</div>
+            <h3>Orthodontics & Alignment</h3>
+            <div class="service-description">
+                <p><strong>Smile Correction & Alignment</strong></p>
+                <p>Straighten your smile with our modern orthodontic treatments. From traditional braces to clear aligners, we have options for every age and preference.</p>
+                <ul class="service-features">
+                    <li>Braces & clear aligners</li>
+                    <li>Bite correction</li>
+                    <li>Teeth spacing solutions</li>
+                    <li>Retention & follow-up care</li>
+                </ul>
+            </div>
+        </article>
+
+        <article class="service-card" tabindex="0" id="periodontal" data-service="Periodontal Care">
+            <div class="service-icon">🌿</div>
+            <h3>Periodontal & Gum Care</h3>
+            <div class="service-description">
+                <p><strong>Gum Health & Disease Treatment</strong></p>
+                <p>Healthy gums are the foundation of healthy teeth. We diagnose and treat gum disease at all stages, from prevention to advanced periodontal therapy.</p>
+                <ul class="service-features">
+                    <li>Gum disease screening</li>
+                    <li>Deep cleaning & scaling</li>
+                    <li>Periodontal laser therapy</li>
+                    <li>Gum health maintenance</li>
+                </ul>
+            </div>
+        </article>
+
+        <article class="service-card" tabindex="0" id="cosmetic" data-service="Cosmetic Dentistry">
+            <div class="service-icon">✨</div>
+            <h3>Cosmetic Dentistry</h3>
+            <div class="service-description">
+                <p><strong>Aesthetic Smile Enhancement</strong></p>
+                <p>Transform your smile with cosmetic treatments. From bonding to veneers, we offer solutions to enhance your teeth's appearance and boost your confidence.</p>
+                <ul class="service-features">
+                    <li>Dental bonding</li>
+                    <li>Porcelain veneers</li>
+                    <li>Smile makeovers</li>
+                    <li>Color & shape correction</li>
+                </ul>
+            </div>
+        </article>
+    </div>
+</section>
+
+<!-- Call to Action -->
+<section style="background: linear-gradient(135deg, #2fa4a9, #1e7c81); color: white; padding: 40px 20px; text-align: center; margin: 40px 0;">
+    <h2 style="margin-bottom: 20px;">Ready to Improve Your Smile?</h2>
+    <p style="font-size: 18px; margin-bottom: 20px;">Schedule your consultation with our experts today</p>
+    <a href="{% url 'home' %}#appointment" class="btn btn-primary">Book Appointment Now</a>
+</section>
+
+{% endblock %}

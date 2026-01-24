@@ -1,0 +1,101 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Our Doctors - Surabi Dental Clinic{% endblock %}
+
+{% block content %}
+<!-- Hero Banner -->
+<section class="page-banner" style="background: linear-gradient(135deg, #2fa4a9, #1e7c81); color: white; padding: 60px 20px; text-align: center;">
+    <h1 style="font-size: 48px; margin-bottom: 10px;">Meet Our Expert Doctors</h1>
+    <p style="font-size: 18px; opacity: 0.95;">Experienced dental professionals dedicated to your smile</p>
+</section>
+
+<!-- Doctors Section -->
+<section class="team reveal" id="team" style="padding: 40px 12px;">
+  <div class="container">
+    <div class="team-grid">
+      {% if doctors %}
+        {% for doctor in doctors %}
+          <article class="team-member">
+            {% if doctor.photo %}
+              <img src="{{ doctor.photo.url }}" alt="{{ doctor.name }}" style="width: 100%; height: 250px; object-fit: cover; border-radius: 8px 8px 0 0;">
+            {% else %}
+              <div style="width: 100%; height: 250px; background: #e0e0e0; border-radius: 8px 8px 0 0; display: flex; align-items: center; justify-content: center;">
+                <span style="font-size: 60px;">👨‍⚕️</span>
+              </div>
+            {% endif %}
+            <div style="padding: 20px;">
+              <h4>{{ doctor.name }}</h4>
+              <p class="specialization" style="color: #2fa4a9; font-weight: bold; margin: 5px 0;">{{ doctor.specialization }}</p>
+              <p class="experience" style="font-size: 14px; color: #666; margin: 5px 0;">
+                <span style="display: inline-block; background: #f0f0f0; padding: 4px 8px; border-radius: 4px;">
+                  {{ doctor.experience_years }} Years Experience
+                </span>
+              </p>
+              {% if doctor.bio %}
+                <p style="font-size: 14px; margin: 10px 0; line-height: 1.5;">{{ doctor.bio }}</p>
+              {% endif %}
+              <div style="margin-top: 15px; padding-top: 15px; border-top: 1px solid #eee;">
+                <p style="font-size: 13px; margin: 5px 0;"><strong>📞</strong> {{ doctor.phone }}</p>
+                <p style="font-size: 13px; margin: 5px 0;"><strong>📧</strong> <a href="mailto:{{ doctor.email }}" style="color: #2fa4a9; text-decoration: none;">{{ doctor.email }}</a></p>
+                <p style="font-size: 13px; margin: 5px 0;">
+                  <strong>📅 Available:</strong> {% spaceless %}
+                    {% for day in doctor.get_available_days %}
+                      {{ day }}{% if not forloop.last %}, {% endif %}
+                    {% endfor %}
+                  {% endspaceless %}
+                </p>
+              </div>
+              <a href="{% url 'home' %}#appointment" class="btn btn-primary" style="width: 100%; margin-top: 15px; text-align: center; display: block; padding: 10px;">
+                Book with {{ doctor.name|truncatewords:1 }}
+              </a>
+            </div>
+          </article>
+        {% endfor %}
+      {% else %}
+        <div style="grid-column: 1/-1; text-align: center; padding: 40px;">
+          <h3 style="color: #666;">No doctors available at the moment.</h3>
+          <p style="color: #999; margin-top: 10px;">Please check back soon or contact us for more information.</p>
+        </div>
+      {% endif %}
+    </div>
+  </div>
+</section>
+
+<!-- Doctor Qualifications Section -->
+<section style="background: #f9f9f9; padding: 40px 12px; margin: 40px 0;">
+  <div class="container" style="max-width: 900px; margin: 0 auto;">
+    <h2 style="text-align: center; margin-bottom: 30px;">Why Choose Our Doctors?</h2>
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px;">
+      <div style="text-align: center;">
+        <div style="font-size: 40px; margin-bottom: 10px;">🎓</div>
+        <h4>Highly Qualified</h4>
+        <p>All doctors are BDS/MDS certified from reputed institutions with continuous education.</p>
+      </div>
+      <div style="text-align: center;">
+        <div style="font-size: 40px; margin-bottom: 10px;">⭐</div>
+        <h4>Experienced</h4>
+        <p>Average 15+ years of experience in their respective dental specializations.</p>
+      </div>
+      <div style="text-align: center;">
+        <div style="font-size: 40px; margin-bottom: 10px;">❤️</div>
+        <h4>Patient-Focused</h4>
+        <p>We prioritize comfort and care, making every patient feel valued and heard.</p>
+      </div>
+      <div style="text-align: center;">
+        <div style="font-size: 40px; margin-bottom: 10px;">🏆</div>
+        <h4>Award-Winning</h4>
+        <p>Recognized for excellence in dental care and patient satisfaction.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Call to Action -->
+<section style="background: linear-gradient(135deg, #2fa4a9, #1e7c81); color: white; padding: 40px 20px; text-align: center;">
+    <h2 style="margin-bottom: 20px;">Schedule Your Appointment Today</h2>
+    <p style="font-size: 18px; margin-bottom: 20px;">Choose your preferred doctor and book a consultation</p>
+    <a href="{% url 'home' %}#appointment" class="btn btn-primary">Book Now</a>
+</section>
+
+{% endblock %}

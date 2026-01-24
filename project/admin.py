@@ -15,9 +15,9 @@ class DoctorAdmin(admin.ModelAdmin):
     list_display = ('name', 'specialization', 'availability_display', 'experience_display', 'email', 'is_active_display', 'created_at')
     search_fields = ('name', 'specialization', 'email')
     list_filter = ('is_active', 'created_at')
-    readonly_fields = ('created_at',)
+    readonly_fields = ('created_at', 'photo_preview')
     fieldsets = (
-        ('Doctor Information', {'fields': ('name', 'specialization', 'bio')}),
+        ('Doctor Information', {'fields': ('name', 'specialization', 'bio', 'photo', 'photo_preview')}),
         ('Contact Details', {'fields': ('email', 'phone')}),
         ('Professional Info', {'fields': ('experience_years', 'is_active')}),
         ('Availability', {
@@ -26,6 +26,12 @@ class DoctorAdmin(admin.ModelAdmin):
         }),
         ('Timestamps', {'fields': ('created_at',)}),
     )
+    
+    def photo_preview(self, obj):
+        if obj.photo:
+            return format_html('<img src="{}" width="100" height="100" style="border-radius: 50%;" />', obj.photo.url)
+        return 'No photo'
+    photo_preview.short_description = 'Photo Preview'
 
     def experience_display(self, obj):
         return f"{obj.experience_years} years"

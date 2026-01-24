@@ -5,8 +5,8 @@ document.addEventListener('DOMContentLoaded', () => {
   const themeToggle = document.getElementById('theme-toggle');
   const form = document.getElementById('appointment-form');
   const modal = document.getElementById('modal');
-  const modalOk = document.getElementById('modal-ok');
-  const modalClose = document.querySelector('.modal-close');
+  const modalOk = modal ? modal.querySelector('#modal-ok') : null;
+  const modalClose = modal ? modal.querySelector('.modal-close') : null;
   const formFeedback = document.getElementById('form-feedback');
   const serviceCards = document.querySelectorAll('.service-card');
   const dateInput = document.getElementById('date');
@@ -130,28 +130,31 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // ============= MODAL =============
   function showModal(title, message){
+    if (!modal) return;
     document.getElementById('modal-title').textContent = title;
     document.getElementById('modal-message').textContent = message;
     modal.setAttribute('aria-hidden', 'false');
     modal.classList.add('open');
-    setTimeout(()=> modalOk.focus(), 180);
+    if (modalOk) setTimeout(()=> modalOk.focus(), 180);
   }
   
   function showServiceModal(title, description){
+    if (!modal) return;
     document.getElementById('modal-title').textContent = title;
     document.getElementById('modal-message').innerHTML = description;
     modal.setAttribute('aria-hidden', 'false');
     modal.classList.add('open');
-    setTimeout(()=> modalOk.focus(), 180);
+    if (modalOk) setTimeout(()=> modalOk.focus(), 180);
   }
   
   function hideModal(){
+    if (!modal) return;
     modal.setAttribute('aria-hidden', 'true');
     modal.classList.remove('open');
   }
   
-  modalOk.addEventListener('click', () => hideModal());
-  modalClose.addEventListener('click', () => hideModal());
+  if (modalOk) modalOk.addEventListener('click', () => hideModal());
+  if (modalClose) modalClose.addEventListener('click', () => hideModal());
   document.addEventListener('keydown', (e)=>{ if(e.key==='Escape') hideModal(); });
 
   // ============= CONFETTI =============
@@ -173,54 +176,57 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // ============= OTP FUNCTIONALITY =============
   function clearOtpSection() {
-    emailOtpInput.value = '';
-    otpCodeInput.value = '';
-    otpInputSection.style.display = 'none';
-    otpSuccessDiv.style.display = 'none';
+    if (emailOtpInput) emailOtpInput.value = '';
+    if (otpCodeInput) otpCodeInput.value = '';
+    if (otpInputSection) otpInputSection.style.display = 'none';
+    if (otpSuccessDiv) otpSuccessDiv.style.display = 'none';
   }
 
-  sendOtpBtn.addEventListener('click', () => {
-    const email = emailOtpInput.value.trim();
-    
-    if (!email || !email.includes('@')) {
-      alert('Please enter a valid email address');
-      return;
-    }
+  if (sendOtpBtn) {
+    sendOtpBtn.addEventListener('click', () => {
+      const email = emailOtpInput.value.trim();
+      
+      if (!email || !email.includes('@')) {
+        alert('Please enter a valid email address');
+        return;
+      }
 
-    sendOtpBtn.disabled = true;
-    sendOtpBtn.textContent = 'Sending OTP...';
+      sendOtpBtn.disabled = true;
+      sendOtpBtn.textContent = 'Sending OTP...';
 
-    fetch('/api/send-otp/', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/x-www-form-urlencoded',
-        'X-CSRFToken': getCookie('csrftoken')
-      },
-      body: `email=${encodeURIComponent(email)}`
-    })
-    .then(r => r.json())
-    .then(data => {
-      if (data.success) {
-        alert(`${data.message}\nFor demo: OTP is in the console/email. Check server output.`);
-        otpInputSection.style.display = 'block';
-        sendOtpBtn.textContent = 'OTP Sent ✓';
-      } else {
-        alert(`Error: ${data.error}`);
+      fetch('/api/send-otp/', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+          'X-CSRFToken': getCookie('csrftoken')
+        },
+        body: `email=${encodeURIComponent(email)}`
+      })
+      .then(r => r.json())
+      .then(data => {
+        if (data.success) {
+          alert(`${data.message}\nFor demo: OTP is in the console/email. Check server output.`);
+          if (otpInputSection) otpInputSection.style.display = 'block';
+          sendOtpBtn.textContent = 'OTP Sent ✓';
+        } else {
+          alert(`Error: ${data.error}`);
+          sendOtpBtn.textContent = 'Send OTP';
+          sendOtpBtn.disabled = false;
+        }
+      })
+      .catch(err => {
+        console.error('Error:', err);
+        alert('Failed to send OTP. Check console.');
         sendOtpBtn.textContent = 'Send OTP';
         sendOtpBtn.disabled = false;
-      }
-    })
-    .catch(err => {
-      console.error('Error:', err);
-      alert('Failed to send OTP. Check console.');
-      sendOtpBtn.textContent = 'Send OTP';
-      sendOtpBtn.disabled = false;
+      });
     });
-  });
+  }
 
-  verifyOtpBtn.addEventListener('click', () => {
-    const email = emailOtpInput.value.trim();
-    const otp = otpCodeInput.value.trim();
+  if (verifyOtpBtn) {
+    verifyOtpBtn.addEventListener('click', () => {
+    const email = emailOtpInput?.value?.trim() || '';
+    const otp = otpCodeInput?.value?.trim() || '';
 
     if (!otp || otp.length !== 6) {
       alert('Please enter a 6-digit OTP');
@@ -251,32 +257,43 @@ document.addEventListener('DOMContentLoaded', () => {
             field.classList.add('filled');
           }
         }
-        otpVerifiedInput.value = 'true';
-        otpInputSection.style.display = 'none';
-        otpSuccessDiv.style.display = 'block';
-        otpSuccessDiv.textContent = '✓ Email verified successfully';
-        submitBtn.disabled = false;
-        verifyOtpBtn.textContent = 'Verified ✓';
+        if (otpVerifiedInput) otpVerifiedInput.value = 'true';
+        if (otpInputSection) otpInputSection.style.display = 'none';
+        if (otpSuccessDiv) {
+          otpSuccessDiv.style.display = 'block';
+          otpSuccessDiv.textContent = '✓ Email verified successfully';
+        }
+        if (submitBtn) submitBtn.disabled = false;
+        if (verifyOtpBtn) verifyOtpBtn.textContent = 'Verified ✓';
       } else {
         alert(`Error: ${data.error}`);
-        verifyOtpBtn.textContent = 'Verify OTP';
-        verifyOtpBtn.disabled = false;
+        if (verifyOtpBtn) {
+          verifyOtpBtn.textContent = 'Verify OTP';
+          verifyOtpBtn.disabled = false;
+        }
       }
     })
     .catch(err => {
       console.error('Error:', err);
       alert('Error verifying OTP. Check console.');
-      verifyOtpBtn.textContent = 'Verify OTP';
-      verifyOtpBtn.disabled = false;
+      if (verifyOtpBtn) {
+        verifyOtpBtn.textContent = 'Verify OTP';
+        verifyOtpBtn.disabled = false;
+      }
     });
-  });
+    });
+  }
 
-  resendOtpBtn.addEventListener('click', () => {
-    clearOtpSection();
-    sendOtpBtn.textContent = 'Send OTP';
-    sendOtpBtn.disabled = false;
-    sendOtpBtn.click();
-  });
+  if (resendOtpBtn) {
+    resendOtpBtn.addEventListener('click', () => {
+      clearOtpSection();
+      if (sendOtpBtn) {
+        sendOtpBtn.textContent = 'Send OTP';
+        sendOtpBtn.disabled = false;
+        sendOtpBtn.click();
+      }
+    });
+  }
 
   // ============= DATE CHANGE HANDLER =============
   dateInput?.addEventListener('change', async (e) => {
@@ -295,15 +312,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
       if (data.is_sunday) {
         alert('Clinic is closed on Sundays. Please select another date.');
-        dateInput.value = '';
-        slotGrid.innerHTML = '<p style="color: #f44336; text-align: center; grid-column: 1/-1;">Clinic closed on Sundays</p>';
+        if (dateInput) dateInput.value = '';
+        if (slotGrid) slotGrid.innerHTML = '<p style="color: #f44336; text-align: center; grid-column: 1/-1;">Clinic closed on Sundays</p>';
         return;
       }
 
       if (data.doctor_not_available) {
         alert(data.message || 'Selected doctor is not available on this date.');
-        dateInput.value = '';
-        slotGrid.innerHTML = `<p style="color: #f44336; text-align: center; grid-column: 1/-1;">${data.message || 'Doctor not available'}</p>`;
+        if (dateInput) dateInput.value = '';
+        if (slotGrid) slotGrid.innerHTML = `<p style="color: #f44336; text-align: center; grid-column: 1/-1;">${data.message || 'Doctor not available'}</p>`;
         return;
       }
 
@@ -323,9 +340,11 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   function updateSlots(data) {
+    if (!slotGrid) return;
     slotGrid.innerHTML = '';
     selectedSlot = null;
-    document.getElementById('time_slot').value = '';
+    const timeSlotInput = document.getElementById('time_slot');
+    if (timeSlotInput) timeSlotInput.value = '';
 
     const now = new Date();
     const today = new Date().toISOString().split('T')[0];
@@ -348,6 +367,7 @@ document.addEventListener('DOMContentLoaded', () => {
           btn.classList.add('expired');
           btn.disabled = true;
           btn.textContent = `${slot} (Passed)`;
+          slotGrid.appendChild(btn);
           return;
         }
       }
@@ -367,12 +387,14 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function selectSlot(button, slot) {
+    if (!slotGrid) return;
     const prevSelected = slotGrid.querySelector('.slot.selected');
     if (prevSelected) prevSelected.classList.remove('selected');
     
     button.classList.add('selected');
     selectedSlot = slot;
-    document.getElementById('time_slot').value = slot;
+    const timeSlotInput = document.getElementById('time_slot');
+    if (timeSlotInput) timeSlotInput.value = slot;
     console.log('Selected slot:', slot);
   }
 
@@ -381,15 +403,21 @@ document.addEventListener('DOMContentLoaded', () => {
     e.preventDefault();
     clearErrors();
 
+    const nameInput = document.getElementById('name');
+    const mailInput_form = document.getElementById('mail');
+    const timeSlotInput = document.getElementById('time_slot');
+    const doctorInput = document.getElementById('doctor');
+    const serviceInput = document.getElementById('service');
+
     const data = {
-      name: document.getElementById('name').value.trim(),
-      mail: document.getElementById('mail').value.trim(),
-      mobile: mobileInput.value.trim(),
-      date: dateInput.value,
-      time_slot: document.getElementById('time_slot').value,
-      doctor_id: document.getElementById('doctor')?.value || '',
-      service_id: document.getElementById('service')?.value || '',
-      otp_verified: otpVerifiedInput.value
+      name: nameInput?.value?.trim() || '',
+      mail: mailInput_form?.value?.trim() || '',
+      mobile: mobileInput?.value?.trim() || '',
+      date: dateInput?.value || '',
+      time_slot: timeSlotInput?.value || '',
+      doctor_id: doctorInput?.value || '',
+      service_id: serviceInput?.value || '',
+      otp_verified: otpVerifiedInput?.value || 'false'
     };
 
     const errors = validate(data);
@@ -400,7 +428,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     showModal('Thank you!', 'Your appointment request is received. We will contact you shortly.');
     burstConfetti();
-    formFeedback.textContent = 'Submitting appointment…';
+    if (formFeedback) formFeedback.textContent = 'Submitting appointment…';
 
     if (window.fetch) {
       const formData = new FormData();
@@ -423,25 +451,25 @@ document.addEventListener('DOMContentLoaded', () => {
       .then(json => {
         if (json.success) {
           setTimeout(() => {
-            form.reset();
+            if (form) form.reset();
             clearOtpSection();
             otpVerified = false;
-            mobileInput.value = '';
-            otpVerifiedInput.value = 'false';
-            submitBtn.disabled = true;
-            slotGrid.innerHTML = '';
-            formFeedback.textContent = 'Appointment submitted successfully!';
+            if (mobileInput) mobileInput.value = '';
+            if (otpVerifiedInput) otpVerifiedInput.value = 'false';
+            if (submitBtn) submitBtn.disabled = true;
+            if (slotGrid) slotGrid.innerHTML = '';
+            if (formFeedback) formFeedback.textContent = 'Appointment submitted successfully!';
           }, 2000);
         } else {
-          formFeedback.textContent = 'Error: ' + (json.error || 'Unknown error');
+          if (formFeedback) formFeedback.textContent = 'Error: ' + (json.error || 'Unknown error');
         }
       })
       .catch(err => {
         console.error(err);
-        formFeedback.textContent = 'Submission failed. Check console.';
+        if (formFeedback) formFeedback.textContent = 'Submission failed. Check console.';
       });
     } else {
-      form.submit();
+      if (form) form.submit();
     }
   });
 
@@ -472,10 +500,6 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // ============= PHONE FORMATTING =============
-  mobileInput?.addEventListener('input', (e) => {
-    e.target.value = e.target.value.replace(/[^0-9]/g, '').slice(0, 10);
-  });
-
   mobileInput?.addEventListener('input', (e) => {
     e.target.value = e.target.value.replace(/[^0-9]/g, '').slice(0, 10);
   });
@@ -684,10 +708,4 @@ function updateFeedbackDisplay(feedbacks) {
       feedbackTestimonial.appendChild(feedbackBox);
     });
   }
-}
-
-// Helper function
-function getCookie(name) {
-  const m = document.cookie.match('(^|;)\\s*' + name + '\\s*=\\s*([^;]+)');
-  return m ? m.pop() : '';
 }

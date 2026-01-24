@@ -1,0 +1,172 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>{% block title %}Surabi Dental Clinic{% endblock %}</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, minimum-scale=1, maximum-scale=5, user-scalable=yes">
+    <meta name="description" content="Surabi Dental Clinic — expert dental care for the whole family. Book appointments online.">
+    <meta name="theme-color" content="#2fa4a9">
+    <meta name="color-scheme" content="light dark">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    <link rel="icon" type="image/png" href="{% static 'media/logo2.png' %}">
+    <style>
+        /* Prevent layout shift from scrollbar */
+        html {
+            overflow-y: scroll;
+        }
+        /* Safe area for notched devices */
+        @supports (padding: max(0px)) {
+            body {
+                padding-left: max(0px, env(safe-area-inset-left));
+                padding-right: max(0px, env(safe-area-inset-right));
+            }
+        }
+    </style>
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+
+<!-- Header -->
+<header class="header">
+    <div class="header-inner">
+        <div class="logo">
+            <span class="logo-mark">🦷</span>
+            <div>
+                <h1><a href="{% url 'home' %}" style="text-decoration: none; color: inherit;">Surabi</a></h1>
+                <small>Dental Clinic</small>
+            </div>
+        </div>
+        <p class="tag">Your Smile, Our Priority</p>
+    </div>
+</header>
+
+<!-- Navigation -->
+<nav class="nav" role="navigation" aria-label="Main navigation">
+    <div class="nav-inner">
+        <div class="nav-links">
+            <a href="{% url 'home' %}" class="nav-link">Home</a>
+            <a href="{% url 'services' %}" class="nav-link">Services</a>
+            <a href="{% url 'doctors' %}" class="nav-link">Doctors</a>
+            <a href="{% url 'contact' %}" class="nav-link">Contact</a>
+            <a href="{% url 'home' %}#appointment" class="nav-link">Appointment</a>
+        </div>
+        <div class="nav-actions">
+            <button id="theme-toggle" class="theme-toggle" aria-label="Toggle theme">🌙</button>
+        </div>
+    </div>
+</nav>
+
+{% block content %}{% endblock %}
+
+<!-- Footer -->
+<footer class="footer">
+    <div class="footer-container">
+        <div class="footer-content">
+            <!-- About Section -->
+            <div class="footer-section">
+                <h4>About Surabi</h4>
+                <p>Surabi Dental Clinic is committed to providing world-class dental care with a personal touch. Your smile is our priority.</p>
+                <div class="footer-badges">
+                    <span class="badge">✓ ISO Certified</span>
+                    <span class="badge">✓ Expert Team</span>
+                </div>
+            </div>
+
+            <!-- Quick Links -->
+            <div class="footer-section">
+                <h4>Quick Links</h4>
+                <ul class="footer-links">
+                    <li><a href="{% url 'home' %}">Home</a></li>
+                    <li><a href="{% url 'services' %}">Services</a></li>
+                    <li><a href="{% url 'doctors' %}">Our Doctors</a></li>
+                    <li><a href="{% url 'contact' %}">Contact</a></li>
+                </ul>
+            </div>
+
+            <!-- Services -->
+            <div class="footer-section">
+                <h4>Services</h4>
+                <ul class="footer-links">
+                    <li><a href="{% url 'services' %}#cleaning">Professional Cleaning</a></li>
+                    <li><a href="{% url 'services' %}#whitening">Teeth Whitening</a></li>
+                    <li><a href="{% url 'services' %}#implants">Dental Implants</a></li>
+                    <li><a href="{% url 'services' %}#orthodontics">Orthodontics</a></li>
+                </ul>
+            </div>
+
+            <!-- Contact Info -->
+            <div class="footer-section">
+                <h4>Contact Info</h4>
+                <div class="contact-details">
+                    <div class="contact-item">
+                        <span class="contact-icon">📍</span>
+                        <div>
+                            <p><strong>Location</strong></p>
+                            <p>Srivilliputtur, Tamil Nadu, India</p>
+                        </div>
+                    </div>
+                    <div class="contact-item">
+                        <span class="contact-icon">📞</span>
+                        <div>
+                            <p><strong>Phone</strong></p>
+                            <p><a href="tel:+919123456789">+91 9123 456 789</a></p>
+                        </div>
+                    </div>
+                    <div class="contact-item">
+                        <span class="contact-icon">📧</span>
+                        <div>
+                            <p><strong>Email</strong></p>
+                            <p><a href="mailto:hello@surabidental.com">hello@surabidental.com</a></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Follow Us -->
+            <div class="footer-section">
+                <h4>Follow Us</h4>
+                <div class="social-links">
+                    <a href="https://facebook.com" class="social-link" target="_blank" rel="noopener noreferrer">f</a>
+                    <a href="https://instagram.com" class="social-link" target="_blank" rel="noopener noreferrer">📷</a>
+                    <a href="https://twitter.com" class="social-link" target="_blank" rel="noopener noreferrer">𝕏</a>
+                </div>
+                <div class="footer-hours">
+                    <p><strong>Hours</strong></p>
+                    <p>Mon-Sat: 9:00 AM - 8:00 PM</p>
+                    <p>Sunday: Closed</p>
+                    <p class="emergency">🚨 Emergency: 24/7 Available</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Footer Bottom -->
+        <div class="footer-bottom">
+            <p>&copy; 2025 Surabi Dental Clinic. All Rights Reserved.</p>
+            <p>Designed with care for your smile | Best Dental Care in Srivilliputtur</p>
+        </div>
+    </div>
+</footer>
+
+<!-- Modal -->
+<div id="modal" class="modal" aria-hidden="true" role="dialog" aria-modal="true">
+    <div class="modal-content">
+        <button class="modal-close" aria-label="Close">&times;</button>
+        <h3 id="modal-title">Message</h3>
+        <p id="modal-message"></p>
+        <div class="modal-actions">
+            <button class="btn btn-primary" id="modal-ok">OK</button>
+        </div>
+    </div>
+</div>
+
+<script src="{% static 'js/script.js' %}"></script>
+
+<script src="{% static 'js/script.js' %}" defer></script>
+
+{% block extra_js %}{% endblock %}
+</body>
+</html>

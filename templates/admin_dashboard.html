@@ -1,0 +1,959 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - Surabi Dental Clinic</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    {% load static %}
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .header {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .logo {
+            font-size: 32px;
+            color: #667eea;
+            font-weight: bold;
+        }
+
+        .logo i {
+            margin-right: 10px;
+        }
+
+        .header-title h1 {
+            color: #333;
+            font-size: 28px;
+            margin-bottom: 5px;
+        }
+
+        .header-title p {
+            color: #999;
+            font-size: 14px;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            background: #f0f0f0;
+            padding: 10px 20px;
+            border-radius: 25px;
+        }
+
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+        }
+
+        .logout-btn {
+            background: #ff6b6b;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+
+        .logout-btn:hover {
+            background: #ff5252;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(255, 107, 107, 0.3);
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 25px;
+            border-radius: 10px;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s;
+            cursor: pointer;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+
+        .stat-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .stat-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            color: white;
+        }
+
+        .stat-icon.blue {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
+        .stat-icon.green {
+            background: linear-gradient(135deg, #56ab2f 0%, #a8e063 100%);
+        }
+
+        .stat-icon.orange {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        }
+
+        .stat-icon.purple {
+            background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);
+        }
+
+        .stat-number {
+            font-size: 32px;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 5px;
+        }
+
+        .stat-label {
+            color: #999;
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .stat-change {
+            font-size: 12px;
+            margin-top: 10px;
+            padding-top: 10px;
+            border-top: 1px solid #eee;
+            color: #4caf50;
+        }
+
+        .main-content {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 20px;
+        }
+
+        .content-section {
+            background: white;
+            padding: 25px;
+            border-radius: 10px;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .section-title {
+            font-size: 20px;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .section-title i {
+            color: #667eea;
+            font-size: 24px;
+        }
+
+        .admin-links {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+        }
+
+        .admin-link {
+            padding: 20px;
+            border-radius: 8px;
+            text-decoration: none;
+            color: white;
+            font-weight: 600;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            text-align: center;
+            justify-content: center;
+        }
+
+        .admin-link i {
+            font-size: 24px;
+        }
+
+        .admin-link.doctors {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
+        .admin-link.services {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        }
+
+        .admin-link.bookings {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+        }
+
+        .admin-link.otp {
+            background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+        }
+
+        .admin-link:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+        }
+
+        .quick-actions {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .quick-action-btn {
+            padding: 15px 20px;
+            border: none;
+            border-radius: 8px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .quick-action-btn:hover {
+            transform: translateX(5px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .recent-activity {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .activity-item {
+            padding: 15px;
+            border-left: 4px solid #667eea;
+            background: #f9f9f9;
+            margin-bottom: 10px;
+            border-radius: 4px;
+            transition: all 0.3s;
+        }
+
+        .activity-item:hover {
+            background: #f0f0f0;
+            border-left-color: #764ba2;
+        }
+
+        .activity-time {
+            color: #999;
+            font-size: 12px;
+            margin-bottom: 5px;
+        }
+
+        .activity-text {
+            color: #333;
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .footer {
+            text-align: center;
+            margin-top: 30px;
+            color: white;
+            font-size: 14px;
+        }
+
+        .footer a {
+            color: #fff;
+            text-decoration: none;
+            margin: 0 10px;
+        }
+
+        .footer a:hover {
+            text-decoration: underline;
+        }
+
+        @media (max-width: 768px) {
+            .header {
+                flex-direction: column;
+                text-align: center;
+            }
+
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+
+            .admin-links {
+                grid-template-columns: 1fr;
+            }
+
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .alert {
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .alert-success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .alert-warning {
+            background: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffeaa7;
+        }
+
+        .alert-info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+        }
+
+        .feature-card {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .feature-card-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .feature-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
+        .feature-card-title {
+            font-size: 16px;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .feature-card-desc {
+            color: #999;
+            font-size: 13px;
+            line-height: 1.5;
+            margin-bottom: 15px;
+        }
+
+        .feature-link {
+            display: inline-block;
+            color: #667eea;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 13px;
+            transition: all 0.3s;
+        }
+
+        .feature-link:hover {
+            color: #764ba2;
+            gap: 5px;
+        }
+
+        /* Charts Section */
+        .charts-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 25px;
+            margin-top: 30px;
+        }
+
+        .chart-card {
+            background: white;
+            padding: 25px;
+            border-radius: 10px;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .chart-title {
+            font-size: 16px;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .chart-title i {
+            color: #667eea;
+            font-size: 18px;
+        }
+
+        .chart-container {
+            position: relative;
+            height: 300px;
+        }
+
+        @media (max-width: 768px) {
+            .charts-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <div class="header-left">
+                <div class="logo">
+                    <i class="fas fa-tooth"></i>
+                </div>
+                <div class="header-title">
+                    <h1>Admin Dashboard</h1>
+                    <p>Surabi Dental Clinic Management System</p>
+                </div>
+            </div>
+            <div class="user-info">
+                <div class="user-avatar">
+                    <i class="fas fa-user-md"></i>
+                </div>
+                <div>
+                    <div style="color: #333; font-weight: 600;">{{ user.first_name|default:"Administrator" }}</div>
+                    <div style="color: #999; font-size: 12px;">Manage your clinic</div>
+                </div>
+                <form action="/admin-panel/logout/" method="post" style="margin-left: 10px;">
+                    {% csrf_token %}
+                    <button type="submit" class="logout-btn">
+                        <i class="fas fa-sign-out-alt"></i> Logout
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Stats Grid -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-card-header">
+                    <div>
+                        <div class="stat-number" id="total-bookings">0</div>
+                        <div class="stat-label">Total Bookings</div>
+                    </div>
+                    <div class="stat-icon blue">
+                        <i class="fas fa-calendar-check"></i>
+                    </div>
+                </div>
+                <div class="stat-change">
+                    <i class="fas fa-arrow-up"></i> All Time
+                </div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-card-header">
+                    <div>
+                        <div class="stat-number" id="total-doctors">0</div>
+                        <div class="stat-label">Active Doctors</div>
+                    </div>
+                    <div class="stat-icon green">
+                        <i class="fas fa-user-md"></i>
+                    </div>
+                </div>
+                <div class="stat-change">
+                    <i class="fas fa-check-circle"></i> Available
+                </div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-card-header">
+                    <div>
+                        <div class="stat-number" id="total-services">0</div>
+                        <div class="stat-label">Services</div>
+                    </div>
+                    <div class="stat-icon orange">
+                        <i class="fas fa-stethoscope"></i>
+                    </div>
+                </div>
+                <div class="stat-change">
+                    <i class="fas fa-check-circle"></i> Available
+                </div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-card-header">
+                    <div>
+                        <div class="stat-number" id="pending-approvals">0</div>
+                        <div class="stat-label">Pending Approvals</div>
+                    </div>
+                    <div class="stat-icon purple">
+                        <i class="fas fa-hourglass-half"></i>
+                    </div>
+                </div>
+                <div class="stat-change">
+                    <i class="fas fa-bell"></i> Action Required
+                </div>
+            </div>
+        </div>
+
+        <!-- Charts Section -->
+        <div class="charts-grid">
+            <!-- Doctor Appointments Chart -->
+            <div class="chart-card">
+                <div class="chart-title">
+                    <i class="fas fa-chart-bar"></i>
+                    Doctor Appointments
+                </div>
+                <div class="chart-container">
+                    <canvas id="doctorAppointmentsChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Bookings by Status Chart -->
+            <div class="chart-card">
+                <div class="chart-title">
+                    <i class="fas fa-chart-pie"></i>
+                    Bookings by Status
+                </div>
+                <div class="chart-container">
+                    <canvas id="bookingStatusChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Monthly Bookings Chart -->
+            <div class="chart-card">
+                <div class="chart-title">
+                    <i class="fas fa-chart-line"></i>
+                    Monthly Bookings Trend
+                </div>
+                <div class="chart-container">
+                    <canvas id="monthlyBookingsChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="main-content">
+            <!-- Left Column -->
+            <div>
+                <!-- Management Section -->
+                <div class="content-section">
+                    <div class="section-title">
+                        <i class="fas fa-cogs"></i>
+                        Management Panel
+                    </div>
+                    <div class="admin-links">
+                        <a href="/admin/project/doctor/" class="admin-link doctors">
+                            <i class="fas fa-user-md"></i>
+                            <span>Manage Doctors</span>
+                        </a>
+                        <a href="/admin/project/service/" class="admin-link services">
+                            <i class="fas fa-stethoscope"></i>
+                            <span>Manage Services</span>
+                        </a>
+                        <a href="/admin/project/bookings/" class="admin-link bookings">
+                            <i class="fas fa-calendar-check"></i>
+                            <span>View Bookings</span>
+                        </a>
+                        <a href="/admin/project/otpverification/" class="admin-link otp">
+                            <i class="fas fa-shield-alt"></i>
+                            <span>OTP Verifications</span>
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Quick Features -->
+                <div class="content-section" style="margin-top: 20px;">
+                    <div class="section-title">
+                        <i class="fas fa-star"></i>
+                        Key Features
+                    </div>
+                    <div class="dashboard-grid">
+                        <div class="feature-card">
+                            <div class="feature-card-header">
+                                <div class="feature-icon">
+                                    <i class="fas fa-plus-circle"></i>
+                                </div>
+                                <div class="feature-card-title">Add New Doctor</div>
+                            </div>
+                            <div class="feature-card-desc">
+                                Register new doctors to the system with specialization and availability details.
+                            </div>
+                            <a href="/admin/project/doctor/add/" class="feature-link">
+                                Add Doctor <i class="fas fa-arrow-right"></i>
+                            </a>
+                        </div>
+
+                        <div class="feature-card">
+                            <div class="feature-card-header">
+                                <div class="feature-icon">
+                                    <i class="fas fa-plus-circle"></i>
+                                </div>
+                                <div class="feature-card-title">Add New Service</div>
+                            </div>
+                            <div class="feature-card-desc">
+                                Create new dental services with pricing and duration information.
+                            </div>
+                            <a href="/admin/project/service/add/" class="feature-link">
+                                Add Service <i class="fas fa-arrow-right"></i>
+                            </a>
+                        </div>
+
+                        <div class="feature-card">
+                            <div class="feature-card-header">
+                                <div class="feature-icon">
+                                    <i class="fas fa-check-double"></i>
+                                </div>
+                                <div class="feature-card-title">Review Appointments</div>
+                            </div>
+                            <div class="feature-card-desc">
+                                Approve or reject pending appointments and send notifications to patients.
+                            </div>
+                            <a href="/admin/project/bookings/" class="feature-link">
+                                Review <i class="fas fa-arrow-right"></i>
+                            </a>
+                        </div>
+
+                        <div class="feature-card">
+                            <div class="feature-card-header">
+                                <div class="feature-icon">
+                                    <i class="fas fa-database"></i>
+                                </div>
+                                <div class="feature-card-title">System Settings</div>
+                            </div>
+                            <div class="feature-card-desc">
+                                Configure global settings for your clinic management system.
+                            </div>
+                            <a href="/admin/" class="feature-link">
+                                Settings <i class="fas fa-arrow-right"></i>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Column -->
+            <div>
+                <!-- Quick Actions -->
+                <div class="content-section">
+                    <div class="section-title">
+                        <i class="fas fa-lightning-bolt"></i>
+                        Quick Actions
+                    </div>
+                    <div class="quick-actions">
+                        <a href="/admin/project/doctor/add/" style="text-decoration: none;">
+                            <button class="quick-action-btn">
+                                <i class="fas fa-user-plus"></i>
+                                Add New Doctor
+                            </button>
+                        </a>
+                        <a href="/admin/project/service/add/" style="text-decoration: none;">
+                            <button class="quick-action-btn">
+                                <i class="fas fa-plus"></i>
+                                Add New Service
+                            </button>
+                        </a>
+                        <a href="/admin/project/bookings/" style="text-decoration: none;">
+                            <button class="quick-action-btn">
+                                <i class="fas fa-tasks"></i>
+                                View All Bookings
+                            </button>
+                        </a>
+                        <a href="/admin/auth/user/" style="text-decoration: none;">
+                            <button class="quick-action-btn">
+                                <i class="fas fa-users"></i>
+                                Manage Users
+                            </button>
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Recent Activity -->
+                <div class="content-section" style="margin-top: 20px;">
+                    <div class="section-title">
+                        <i class="fas fa-history"></i>
+                        System Info
+                    </div>
+                    <div class="recent-activity">
+                        <div class="activity-item">
+                            <div class="activity-time">
+                                <i class="fas fa-info-circle"></i> Today
+                            </div>
+                            <div class="activity-text">
+                                Dashboard loaded successfully
+                            </div>
+                        </div>
+                        <div class="activity-item">
+                            <div class="activity-time">
+                                <i class="fas fa-check"></i> System Status
+                            </div>
+                            <div class="activity-text">
+                                All systems operational
+                            </div>
+                        </div>
+                        <div class="activity-item">
+                            <div class="activity-time">
+                                <i class="fas fa-database"></i> Database
+                            </div>
+                            <div class="activity-text">
+                                Connected and syncing
+                            </div>
+                        </div>
+                        <div class="activity-item">
+                            <div class="activity-time">
+                                <i class="fas fa-bell"></i> Alerts
+                            </div>
+                            <div class="activity-text">
+                                No critical alerts
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="footer">
+            <p>
+                &copy; 2024-2025 Surabi Dental Clinic. All rights reserved.
+                <a href="/admin/">Admin Panel</a> |
+                <a href="/">Home</a> |
+                <a href="/admin/auth/user/">Users</a>
+            </p>
+        </div>
+    </div>
+
+    <script>
+        let doctorChart, statusChart, monthlyChart;
+
+        // Load dashboard statistics and charts
+        document.addEventListener('DOMContentLoaded', function() {
+            // Fetch and update statistics
+            fetch('/api/admin-stats/')
+                .then(response => response.json())
+                .then(data => {
+                    document.getElementById('total-bookings').textContent = data.total_bookings || 0;
+                    document.getElementById('total-doctors').textContent = data.total_doctors || 0;
+                    document.getElementById('total-services').textContent = data.total_services || 0;
+                    document.getElementById('pending-approvals').textContent = data.pending_approvals || 0;
+
+                    // Render charts
+                    renderDoctorAppointmentsChart(data.doctor_appointments);
+                    renderBookingStatusChart(data.bookings_by_status);
+                    renderMonthlyBookingsChart(data.monthly_bookings);
+                })
+                .catch(error => console.error('Error loading statistics:', error));
+        });
+
+        function renderDoctorAppointmentsChart(data) {
+            const ctx = document.getElementById('doctorAppointmentsChart');
+            if (!ctx) return;
+
+            // Destroy existing chart if it exists
+            if (doctorChart) {
+                doctorChart.destroy();
+            }
+
+            const labels = data.map(item => item.doctor_name);
+            const counts = data.map(item => item.count);
+
+            doctorChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Appointments',
+                        data: counts,
+                        backgroundColor: 'rgba(102, 126, 234, 0.7)',
+                        borderColor: 'rgba(102, 126, 234, 1)',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: true,
+                            position: 'top'
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                stepSize: 1
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        function renderBookingStatusChart(data) {
+            const ctx = document.getElementById('bookingStatusChart');
+            if (!ctx) return;
+
+            // Destroy existing chart if it exists
+            if (statusChart) {
+                statusChart.destroy();
+            }
+
+            const statusColors = {
+                'pending': 'rgba(255, 193, 7, 0.7)',
+                'accepted': 'rgba(76, 175, 80, 0.7)',
+                'completed': 'rgba(33, 150, 243, 0.7)',
+                'rejected': 'rgba(244, 67, 54, 0.7)',
+                'cancelled': 'rgba(156, 39, 176, 0.7)'
+            };
+
+            const labels = data.map(item => item.status.charAt(0).toUpperCase() + item.status.slice(1));
+            const counts = data.map(item => item.count);
+            const colors = data.map(item => statusColors[item.status] || 'rgba(200, 200, 200, 0.7)');
+
+            statusChart = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        data: counts,
+                        backgroundColor: colors,
+                        borderColor: '#fff',
+                        borderWidth: 2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom'
+                        }
+                    }
+                }
+            });
+        }
+
+        function renderMonthlyBookingsChart(data) {
+            const ctx = document.getElementById('monthlyBookingsChart');
+            if (!ctx) return;
+
+            // Destroy existing chart if it exists
+            if (monthlyChart) {
+                monthlyChart.destroy();
+            }
+
+            const labels = data.map(item => item.month);
+            const counts = data.map(item => item.count);
+
+            monthlyChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Total Bookings',
+                        data: counts,
+                        borderColor: 'rgba(102, 126, 234, 1)',
+                        backgroundColor: 'rgba(102, 126, 234, 0.1)',
+                        borderWidth: 2,
+                        fill: true,
+                        tension: 0.4,
+                        pointRadius: 5,
+                        pointBackgroundColor: 'rgba(102, 126, 234, 1)',
+                        pointBorderColor: '#fff',
+                        pointBorderWidth: 2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: true,
+                            position: 'top'
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                stepSize: 1
+                            }
+                        }
+                    }
+                }
+            });
+        }
+    </script>
+</body>
+</html>

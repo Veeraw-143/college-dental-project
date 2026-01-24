@@ -1,0 +1,213 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Home - Surabi Dental Clinic{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<section class="hero" aria-labelledby="hero-heading">
+    <div class="hero-overlay"></div>
+    <div class="hero-content">
+        <h2 id="hero-heading">Healthy Teeth, Confident Smile</h2>
+        <p class="lead">Advanced dental care with a gentle touch.</p>
+        <div class="hero-ctas">
+            <a class="btn btn-primary" href="{% url 'home' %}#appointment">Book Appointment</a>
+            <a class="btn btn-outline" href="{% url 'services' %}">View Services</a>
+        </div>
+    </div>
+
+    <div class="hero-media" aria-hidden="true">
+        <img src="{% static 'media/bg2.webp' %}" alt="Smiling dentist with patient" loading="lazy" decoding="async">
+        <img src="{% static 'media/bg3.webp' %}" alt="Child Dentistry" loading="lazy" decoding="async">
+    </div>
+</section>
+
+<!-- Quick Stats -->
+<section class="quick-stats reveal" style="padding: 40px 12px; background: linear-gradient(135deg, #2fa4a9, #1e7c81); color: white; text-align: center;">
+    <div class="container">
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 20px;">
+            <div>
+                <h3 style="font-size: 32px; margin-bottom: 8px;">15+</h3>
+                <p>Years Experience</p>
+            </div>
+            <div>
+                <h3 style="font-size: 32px; margin-bottom: 8px;">5000+</h3>
+                <p>Happy Patients</p>
+            </div>
+            <div>
+                <h3 style="font-size: 32px; margin-bottom: 8px;">10+</h3>
+                <p>Expert Doctors</p>
+            </div>
+            <div>
+                <h3 style="font-size: 32px; margin-bottom: 8px;">24/7</h3>
+                <p>Emergency Care</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Testimonials -->
+<section class="testimonials reveal" id="testimonials" aria-labelledby="testimonials-heading" style="padding: 40px 12px;">
+  <div class="container">
+    <h2 id="testimonials-heading" style="text-align: center; margin-bottom: 30px;">What our patients say</h2>
+    <div class="testimonials-grid">
+      <blockquote class="testimonial">
+        <p>"The best dental experience I've ever had. Dr. Surabi and her team are wonderful!"</p>
+        <cite>- Rajesh Kumar</cite>
+      </blockquote>
+      <blockquote class="testimonial">
+        <p>"Professional service with a caring touch. Highly recommended for families!"</p>
+        <cite>- Priya Sharma</cite>
+      </blockquote>
+      <blockquote class="testimonial">
+        <p>"My smile has completely changed. Thank you, Surabi Dental!"</p>
+        <cite>- Arjun Patel</cite>
+      </blockquote>
+    </div>
+  </div>
+</section>
+
+<!-- Appointment Section -->
+<section class="appointment" id="appointment">
+    <div class="appointment-card">
+        <h2>Book an Appointment</h2>
+        <form id="appointment-form" method="POST" action="{% url 'booking' %}">
+            {% csrf_token %}
+            
+            <!-- Email Verification Section -->
+            <div id="otp-section" class="otp-verification" style="background: #f0f4f8; padding: 20px; border-radius: 8px; margin-bottom: 20px; border-left: 4px solid #2fa4a9;">
+                <h3 style="margin-bottom: 15px;">Verify Email Address</h3>
+                <div class="field">
+                    <input type="email" id="email-otp" name="email_otp" placeholder=" " class="input-field">
+                    <label for="email-otp">Email Address *</label>
+                </div>
+                <button type="button" id="send-otp-btn" class="btn btn-primary" style="width: 100%; margin-bottom: 10px;">Send OTP</button>
+                
+                <div id="otp-input-section" style="display: none; margin-top: 15px;">
+                    <div class="field">
+                        <input type="text" id="otp-code" maxlength="6" placeholder=" " class="input-field">
+                        <label for="otp-code">Enter OTP *</label>
+                    </div>
+                    <button type="button" id="verify-otp-btn" class="btn btn-primary" style="width: 100%; margin-bottom: 10px;">Verify OTP</button>
+                    <button type="button" id="resend-otp-btn" class="btn btn-outline" style="width: 100%;">Resend OTP</button>
+                </div>
+                
+                <div id="otp-success" style="display: none; color: green; margin-top: 10px;">
+                    ✓ Email verified successfully!
+                </div>
+            </div>
+            
+            <!-- Patient Information Section -->
+            <h3>Patient Information</h3>
+            <div class="field">
+                <input type="text" id="name" name="name" placeholder=" " class="input-field">
+                <label for="name">Full Name *</label>
+            </div>
+            <div class="field">
+                <input type="email" id="mail" name="mail" placeholder=" " class="input-field">
+                <label for="mail">Email Address *</label>
+            </div>
+            <div class="field">
+                <input type="tel" id="mobile" name="mobile" placeholder=" " class="input-field">
+                <label for="mobile">Mobile Number *</label>
+            </div>
+            
+            <!-- Appointment Preferences Section -->
+            <h3>Appointment Preferences</h3>
+            <div class="field">
+                <select id="doctor" name="doctor_id" class="input-field">
+                    <option value="">-- Select Doctor --</option>
+                    {% for doctor in doctors %}
+                        <option value="{{ doctor.id }}">{{ doctor.name }} ({{ doctor.specialization }})</option>
+                    {% endfor %}
+                </select>
+                <label for="doctor">Doctor</label>
+            </div>
+            <div class="field">
+                <select id="service" name="service_id" class="input-field">
+                    <option value="">-- Select Service --</option>
+                    {% for service in services %}
+                        <option value="{{ service.id }}">{{ service.name }}</option>
+                    {% endfor %}
+                </select>
+                <label for="service">Service</label>
+            </div>
+            
+            <!-- Appointment Date & Time Section -->
+            <h3>Appointment Date & Time</h3>
+            <div class="field">
+                <input type="date" id="date" name="date" class="input-field">
+                <label for="date">Select Date *</label>
+            </div>
+            
+            <h3>Select Time Slot</h3>
+            <div class="slot-grid" id="slot-grid">
+                <p style="grid-column: 1/-1; text-align: center; color: #999;">Please select a date first</p>
+            </div>
+            <input type="hidden" id="time_slot" name="time_slot" value="">
+            <input type="hidden" id="otp_verified" name="otp_verified" value="false">
+            <div class="error" data-for="time_slot" aria-live="polite"></div>
+
+            <div class="form-actions">
+                <button type="submit" id="submit-btn" class="btn btn-primary">Book Appointment</button>
+            </div>
+            <div id="form-feedback" class="form-feedback" role="status" aria-live="polite"></div>
+            {% if error %}
+              <div class="form-feedback error-server" role="alert">{{ error }}</div>
+            {% endif %}
+            {% if success %}
+              <div class="form-feedback success-server" role="status">{{ success }}</div>
+            {% endif %}
+        </form>
+    </div>
+</section>
+
+<!-- Feedback Section -->
+<section class="feedback-section reveal" id="feedback" aria-labelledby="feedback-heading">
+  <div class="container">
+    <h2 id="feedback-heading">Share Your Feedback</h2>
+    <p class="feedback-subtitle">Tell us about your experience at Surabi Dental Clinic</p>
+    
+    <div class="feedback-container">
+      <div class="feedback-form-wrapper">
+        <form id="feedback-form" class="feedback-form">
+            {% csrf_token %}
+            <div class="feedback-field">
+                <label for="feedback-name">Your Name</label>
+                <input type="text" id="feedback-name" name="name" required>
+            </div>
+            <div class="feedback-field">
+                <label for="feedback-email">Email</label>
+                <input type="email" id="feedback-email" name="email" required>
+            </div>
+            <div class="feedback-field">
+                <label for="feedback-rating">Rating</label>
+                <select id="feedback-rating" name="rating" required>
+                    <option value="">-- Select Rating --</option>
+                    <option value="5">⭐⭐⭐⭐⭐ Excellent</option>
+                    <option value="4">⭐⭐⭐⭐ Good</option>
+                    <option value="3">⭐⭐⭐ Average</option>
+                    <option value="2">⭐⭐ Poor</option>
+                    <option value="1">⭐ Very Poor</option>
+                </select>
+            </div>
+            <div class="feedback-field">
+                <label for="feedback-message">Your Feedback</label>
+                <textarea id="feedback-message" name="feedback_text" rows="4" required></textarea>
+            </div>
+            <button type="submit" class="btn btn-primary">Submit Feedback</button>
+            <div id="feedback-status" style="margin-top: 10px;"></div>
+        </form>
+      </div>
+      
+      <div class="feedback-display-wrapper">
+        <h3>Recent Feedback</h3>
+        <div id="feedback-testimonial">
+            <p style="text-align: center; color: #999;">Loading feedback...</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+{% endblock %}

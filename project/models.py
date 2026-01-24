@@ -41,6 +41,7 @@ class Doctor(models.Model):
     phone = models.CharField(max_length=15)
     experience_years = models.IntegerField(default=0)
     bio = models.TextField(blank=True, null=True)
+    photo = models.ImageField(upload_to='doctors/', null=True, blank=True, help_text='Doctor profile photo')
     is_active = models.BooleanField(default=True)
     availability_days = models.CharField(
         max_length=50,

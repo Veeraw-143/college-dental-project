@@ -1,0 +1,187 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Contact Us - Surabi Dental Clinic{% endblock %}
+
+{% block content %}
+<!-- Hero Banner -->
+<section class="page-banner" style="background: linear-gradient(135deg, #2fa4a9, #1e7c81); color: white; padding: 60px 20px; text-align: center;">
+    <h1 style="font-size: 48px; margin-bottom: 10px;">Contact Us</h1>
+    <p style="font-size: 18px; opacity: 0.95;">Get in touch with Surabi Dental Clinic</p>
+</section>
+
+<!-- Contact Section -->
+<section id="contact" class="contact reveal" style="padding: 40px 12px;">
+  <div class="container">
+    <div class="contact-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 40px; max-width: 1000px; margin: 0 auto; align-items: start;">
+      
+      <!-- Contact Information -->
+      <div class="contact-info">
+        <h2 style="margin-bottom: 30px; color: #333;">Get In Touch</h2>
+        
+        <div class="contact-item" style="margin-bottom: 30px;">
+          <span class="contact-icon" style="font-size: 24px; margin-right: 15px;">📍</span>
+          <div>
+            <h4 style="margin: 0; color: #2fa4a9;">Location</h4>
+            <p style="margin: 5px 0; color: #666;">Surabi Dental Clinic</p>
+            <p style="margin: 5px 0; color: #666;">Srivilliputtur</p>
+            <p style="margin: 5px 0; color: #666;">Tamil Nadu, India</p>
+          </div>
+        </div>
+
+        <div class="contact-item" style="margin-bottom: 30px;">
+          <span class="contact-icon" style="font-size: 24px; margin-right: 15px;">📞</span>
+          <div>
+            <h4 style="margin: 0; color: #2fa4a9;">Phone</h4>
+            <p style="margin: 5px 0;">
+              <a href="tel:+919123456789" style="color: #2fa4a9; text-decoration: none; font-weight: bold;">+91 9123 456 789</a>
+            </p>
+            <p style="margin: 5px 0; font-size: 14px; color: #666;">Mon-Sat: 9 AM - 8 PM</p>
+          </div>
+        </div>
+
+        <div class="contact-item" style="margin-bottom: 30px;">
+          <span class="contact-icon" style="font-size: 24px; margin-right: 15px;">📧</span>
+          <div>
+            <h4 style="margin: 0; color: #2fa4a9;">Email</h4>
+            <p style="margin: 5px 0;">
+              <a href="mailto:hello@surabidental.com" style="color: #2fa4a9; text-decoration: none;">hello@surabidental.com</a>
+            </p>
+            <p style="margin: 5px 0; font-size: 14px; color: #666;">We'll respond within 24 hours</p>
+          </div>
+        </div>
+
+        <div class="contact-item" style="margin-bottom: 30px;">
+          <span class="contact-icon" style="font-size: 24px; margin-right: 15px;">🕐</span>
+          <div>
+            <h4 style="margin: 0; color: #2fa4a9;">Working Hours</h4>
+            <p style="margin: 5px 0; color: #666;"><strong>Monday - Saturday:</strong> 9:00 AM - 8:00 PM</p>
+            <p style="margin: 5px 0; color: #666;"><strong>Sunday:</strong> Closed</p>
+            <p style="margin: 5px 0; color: #d32f2f; font-weight: bold;">🚨 Emergency: 24/7 Available</p>
+          </div>
+        </div>
+
+        <div style="margin-top: 30px;">
+          <h4 style="color: #333; margin-bottom: 15px;">Follow Us</h4>
+          <div class="social-links" style="display: flex; gap: 10px;">
+            <a href="https://facebook.com" target="_blank" rel="noopener noreferrer" style="width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; background: #3b5998; color: white; border-radius: 50%; text-decoration: none;">f</a>
+            <a href="https://instagram.com" target="_blank" rel="noopener noreferrer" style="width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; background: #E4405F; color: white; border-radius: 50%; text-decoration: none;">📷</a>
+            <a href="https://twitter.com" target="_blank" rel="noopener noreferrer" style="width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; background: #1DA1F2; color: white; border-radius: 50%; text-decoration: none;">𝕏</a>
+            <a href="https://youtube.com" target="_blank" rel="noopener noreferrer" style="width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; background: #FF0000; color: white; border-radius: 50%; text-decoration: none;">▶</a>
+          </div>
+        </div>
+      </div>
+
+      <!-- Contact Form -->
+      <div class="contact-form-wrapper">
+        <h2 style="margin-bottom: 30px; color: #333;">Send Us a Message</h2>
+        <form id="contact-form" style="display: flex; flex-direction: column; gap: 15px;">
+          {% csrf_token %}
+          
+          <div>
+            <label for="contact-name" style="display: block; margin-bottom: 5px; font-weight: bold; color: #333;">Name *</label>
+            <input type="text" id="contact-name" name="name" required style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px; font-size: 14px;">
+          </div>
+
+          <div>
+            <label for="contact-email" style="display: block; margin-bottom: 5px; font-weight: bold; color: #333;">Email *</label>
+            <input type="email" id="contact-email" name="email" required style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px; font-size: 14px;">
+          </div>
+
+          <div>
+            <label for="contact-phone" style="display: block; margin-bottom: 5px; font-weight: bold; color: #333;">Phone</label>
+            <input type="tel" id="contact-phone" name="phone" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px; font-size: 14px;">
+          </div>
+
+          <div>
+            <label for="contact-subject" style="display: block; margin-bottom: 5px; font-weight: bold; color: #333;">Subject *</label>
+            <select id="contact-subject" name="subject" required style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px; font-size: 14px;">
+              <option value="">-- Select Subject --</option>
+              <option value="appointment">Book an Appointment</option>
+              <option value="inquiry">General Inquiry</option>
+              <option value="feedback">Feedback</option>
+              <option value="complaint">Complaint</option>
+              <option value="other">Other</option>
+            </select>
+          </div>
+
+          <div>
+            <label for="contact-message" style="display: block; margin-bottom: 5px; font-weight: bold; color: #333;">Message *</label>
+            <textarea id="contact-message" name="message" rows="5" required style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px; font-size: 14px; resize: vertical;"></textarea>
+          </div>
+
+          <button type="submit" class="btn btn-primary" style="width: 100%; padding: 12px; font-size: 16px; cursor: pointer;">Send Message</button>
+          <div id="contact-status" style="margin-top: 10px; text-align: center;"></div>
+        </form>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- Map Section (Placeholder) -->
+<section style="margin-top: 40px;">
+  <div class="map-placeholder" style="width: 100%; height: 400px; background: linear-gradient(135deg, #f5f5f5, #e0e0e0); display: flex; align-items: center; justify-content: center;">
+    <div style="text-align: center;">
+      <div style="font-size: 48px; margin-bottom: 10px;">🗺️</div>
+      <h3 style="color: #666; margin: 0;">Location Map</h3>
+      <p style="color: #999; margin-top: 5px;">Interactive map will be displayed here</p>
+    </div>
+  </div>
+</section>
+
+<!-- FAQs Section -->
+<section style="padding: 40px 12px; background: #f9f9f9;">
+  <div class="container" style="max-width: 800px; margin: 0 auto;">
+    <h2 style="text-align: center; margin-bottom: 30px; color: #333;">Frequently Asked Questions</h2>
+    
+    <div style="display: flex; flex-direction: column; gap: 15px;">
+      
+      <details style="border: 1px solid #ddd; border-radius: 4px; padding: 15px; cursor: pointer;">
+        <summary style="font-weight: bold; color: #2fa4a9; outline: none;">Do you accept insurance?</summary>
+        <p style="margin-top: 10px; color: #666; margin-bottom: 0;">Yes, we accept most major dental insurance plans. Please contact us to verify your coverage.</p>
+      </details>
+
+      <details style="border: 1px solid #ddd; border-radius: 4px; padding: 15px; cursor: pointer;">
+        <summary style="font-weight: bold; color: #2fa4a9; outline: none;">How do I book an appointment?</summary>
+        <p style="margin-top: 10px; color: #666; margin-bottom: 0;">You can book an appointment online through our appointment form, or call us at +91 9123 456 789.</p>
+      </details>
+
+      <details style="border: 1px solid #ddd; border-radius: 4px; padding: 15px; cursor: pointer;">
+        <summary style="font-weight: bold; color: #2fa4a9; outline: none;">What is your cancellation policy?</summary>
+        <p style="margin-top: 10px; color: #666; margin-bottom: 0;">Please provide at least 24 hours notice for cancellations. Last-minute cancellations may be subject to charges.</p>
+      </details>
+
+      <details style="border: 1px solid #ddd; border-radius: 4px; padding: 15px; cursor: pointer;">
+        <summary style="font-weight: bold; color: #2fa4a9; outline: none;">Do you offer emergency services?</summary>
+        <p style="margin-top: 10px; color: #666; margin-bottom: 0;">Yes, we offer 24/7 emergency dental services. Please call us immediately in case of emergency.</p>
+      </details>
+
+      <details style="border: 1px solid #ddd; border-radius: 4px; padding: 15px; cursor: pointer;">
+        <summary style="font-weight: bold; color: #2fa4a9; outline: none;">What payment methods do you accept?</summary>
+        <p style="margin-top: 10px; color: #666; margin-bottom: 0;">We accept cash, credit cards, debit cards, online transfers, and UPI payments.</p>
+      </details>
+
+    </div>
+  </div>
+</section>
+
+<script>
+document.getElementById('contact-form').addEventListener('submit', function(e) {
+  e.preventDefault();
+  const status = document.getElementById('contact-status');
+  status.textContent = 'Sending message...';
+  status.style.color = '#2fa4a9';
+
+  const formData = new FormData(this);
+  
+  setTimeout(() => {
+    status.textContent = '✓ Message sent successfully! We will contact you soon.';
+    status.style.color = 'green';
+    this.reset();
+    setTimeout(() => status.textContent = '', 3000);
+  }, 1000);
+});
+</script>
+
+{% endblock %}

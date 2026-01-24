@@ -40,7 +40,30 @@ def home(request):
         'doctors': doctors,
         'services': services,
     }
-    return render(request, 'index.html', context)
+    return render(request, 'home.html', context)
+
+
+def services_view(request):
+    """Display all services"""
+    services = Service.objects.filter(is_active=True)
+    context = {
+        'services': services,
+    }
+    return render(request, 'services.html', context)
+
+
+def doctors_view(request):
+    """Display all doctors"""
+    doctors = Doctor.objects.filter(is_active=True)
+    context = {
+        'doctors': doctors,
+    }
+    return render(request, 'doctors.html', context)
+
+
+def contact_view(request):
+    """Display contact page"""
+    return render(request, 'contact.html', {})
 
 
 def send_otp(request):
@@ -225,7 +248,7 @@ def booking(request):
             payload = {'success': False, 'errors': errors}
             if request.headers.get('x-requested-with') == 'XMLHttpRequest':
                 return JsonResponse(payload)
-            return render(request, 'index.html', payload)
+            return render(request, 'home.html', payload)
         
         try:
             appt_date = _date.fromisoformat(date_str)
@@ -233,21 +256,21 @@ def booking(request):
             payload = {'success': False, 'error': 'Invalid date format'}
             if request.headers.get('x-requested-with') == 'XMLHttpRequest':
                 return JsonResponse(payload)
-            return render(request, 'index.html', payload)
+            return render(request, 'home.html', payload)
         
         # Check if date is Sunday
         if is_sunday(appt_date):
             payload = {'success': False, 'error': 'Appointments cannot be booked on Sundays. Please choose another date.'}
             if request.headers.get('x-requested-with') == 'XMLHttpRequest':
                 return JsonResponse(payload)
-            return render(request, 'index.html', payload)
+            return render(request, 'home.html', payload)
         
         # Check if date is in the past
         if appt_date < _date.today():
             payload = {'success': False, 'error': 'Appointment date must be today or later'}
             if request.headers.get('x-requested-with') == 'XMLHttpRequest':
                 return JsonResponse(payload)
-            return render(request, 'index.html', payload)
+            return render(request, 'home.html', payload)
         
         # Convert slot to time object
         try:
@@ -256,7 +279,7 @@ def booking(request):
             payload = {'success': False, 'error': 'Invalid time slot'}
             if request.headers.get('x-requested-with') == 'XMLHttpRequest':
                 return JsonResponse(payload)
-            return render(request, 'index.html', payload)
+            return render(request, 'home.html', payload)
         
         # Check if slot is available
         existing_booking = bookings.objects.filter(
@@ -272,7 +295,7 @@ def booking(request):
             }
             if request.headers.get('x-requested-with') == 'XMLHttpRequest':
                 return JsonResponse(payload)
-            return render(request, 'index.html', payload)
+            return render(request, 'home.html', payload)
         
         # Save booking
         try:
@@ -313,7 +336,7 @@ def booking(request):
             payload = {'success': False, 'error': 'Failed to create appointment. Please try again.'}
             if request.headers.get('x-requested-with') == 'XMLHttpRequest':
                 return JsonResponse(payload)
-            return render(request, 'index.html', payload)
+            return render(request, 'home.html', payload)
         
         payload = {
             'success': True,
@@ -323,7 +346,7 @@ def booking(request):
         if request.headers.get('x-requested-with') == 'XMLHttpRequest':
             return JsonResponse(payload)
         
-        return render(request, 'index.html', payload)
+        return render(request, 'home.html', payload)
     
     # GET: Provide data for form
     doctors = Doctor.objects.filter(is_active=True)
@@ -346,7 +369,7 @@ def booking(request):
         "doctors": doctors,
         "services": services,
     }
-    return render(request, 'index.html', context)
+    return render(request, 'home.html', context)
 
 
 def get_doctors_and_services(request):
