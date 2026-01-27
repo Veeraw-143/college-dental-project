@@ -508,9 +508,16 @@ document.addEventListener('DOMContentLoaded', () => {
   const navLinks = document.querySelectorAll('.nav-link');
   const sections = Array.from(navLinks)
     .map(a => {
-      const id = a.getAttribute('href');
-      if (!id || id === '#') return null;
-      return document.querySelector(id);
+      const href = a.getAttribute('href') || '';
+      // Only treat in-page anchors (starting with '#') as selectors
+      if (!href || !href.startsWith('#') || href === '#') return null;
+      try {
+        return document.querySelector(href);
+      } catch (err) {
+        // If someone accidentally used a non-selector href (like '/'), skip it and warn
+        console.warn('Invalid selector in nav link href:', href, err);
+        return null;
+      }
     })
     .filter(Boolean);
 
@@ -674,9 +681,10 @@ function updateTestimonials(feedbacks) {
         const testimonialBlock = document.createElement('blockquote');
         testimonialBlock.className = 'testimonial';
         testimonialBlock.setAttribute('data-feedback-id', feedback.id);
+        const rating = feedback.rating ? '(' + feedback.rating + '/5 ★)' : '';
         testimonialBlock.innerHTML = `
-          <p>"${feedback.message}"</p>
-          <cite>— ${feedback.name}</cite>
+          <p>"${feedback.feedback_text || feedback.message}"</p>
+          <cite>— ${feedback.name} ${rating}</cite>
         `;
         testimonialsGrid.appendChild(testimonialBlock);
       }
@@ -687,23 +695,22 @@ function updateTestimonials(feedbacks) {
 function updateFeedbackDisplay(feedbacks) {
   const feedbackTestimonial = document.getElementById('feedback-testimonial');
   if (feedbackTestimonial) {
-    // Clear existing feedback boxes (keep form intact)
-    const feedbackBoxes = feedbackTestimonial.querySelectorAll('.feedback-box');
-    feedbackBoxes.forEach(box => box.remove());
+    feedbackTestimonial.innerHTML = '';
     
-    // Remove placeholder
-    const placeholder = feedbackTestimonial.querySelector('.feedback-placeholder');
-    if (placeholder) {
-      placeholder.remove();
+    if (!feedbacks || feedbacks.length === 0) {
+      feedbackTestimonial.innerHTML = '<p style="text-align: center; color: #999;">No feedback yet. Be the first to share!</p>';
+      return;
     }
     
-    // Add feedback boxes
     feedbacks.slice(0, 3).forEach(feedback => {
       const feedbackBox = document.createElement('blockquote');
       feedbackBox.className = 'feedback-box';
+      feedbackBox.style.cssText = 'background: #f9f9f9; padding: 16px; border-radius: 8px; margin-bottom: 12px; border-left: 4px solid #2fa4a9; line-height: 1.6;';
+      const rating = feedback.rating ? '★ ' + feedback.rating + '/5' : '';
       feedbackBox.innerHTML = `
-        <p>"${feedback.message}"</p>
-        <cite>— ${feedback.name}</cite>
+        <p style="margin: 0 0 8px 0; font-style: italic; color: #333;">"${feedback.feedback_text || feedback.message}"</p>
+        <cite style="color: #666; font-size: 13px;">— ${feedback.name}</cite>
+        ${rating ? '<div style="margin-top: 6px; color: #2fa4a9; font-size: 13px;">' + rating + '</div>' : ''}
       `;
       feedbackTestimonial.appendChild(feedbackBox);
     });

@@ -880,6 +880,8 @@ body.dark .testimonial {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
   gap: 16px;
+  max-width: 900px;
+  margin: 0 auto;
 }
 .team-member {
   background: #fff;
