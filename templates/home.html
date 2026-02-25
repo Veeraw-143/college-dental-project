@@ -51,18 +51,33 @@
   <div class="container">
     <h2 id="testimonials-heading" style="text-align: center; margin-bottom: 30px;">What our patients say</h2>
     <div class="testimonials-grid">
-      <blockquote class="testimonial">
-        <p>"The best dental experience I've ever had. Dr. Surabi and her team are wonderful!"</p>
-        <cite>- Rajesh Kumar</cite>
-      </blockquote>
-      <blockquote class="testimonial">
-        <p>"Professional service with a caring touch. Highly recommended for families!"</p>
-        <cite>- Priya Sharma</cite>
-      </blockquote>
-      <blockquote class="testimonial">
-        <p>"My smile has completely changed. Thank you, Surabi Dental!"</p>
-        <cite>- Arjun Patel</cite>
-      </blockquote>
+      {% if feedbacks %}
+        {% for feedback in feedbacks %}
+          <blockquote class="testimonial">
+            <p>"{{ feedback.message }}"</p>
+            <cite>- {{ feedback.name }}</cite>
+            {% if feedback.rating %}
+              <div style="margin-top: 8px; color: #2fa4a9; font-size: 14px;">
+                {% if feedback.rating == 5 %}★★★★★{% elif feedback.rating == 4 %}★★★★☆{% elif feedback.rating == 3 %}★★★☆☆{% elif feedback.rating == 2 %}★★☆☆☆{% else %}★☆☆☆☆{% endif %}
+                ({{ feedback.rating }}/5)
+              </div>
+            {% endif %}
+          </blockquote>
+        {% endfor %}
+      {% else %}
+        <blockquote class="testimonial">
+          <p>"The best dental experience I've ever had. Dr. Surabi and her team are wonderful!"</p>
+          <cite>- Rajesh Kumar</cite>
+        </blockquote>
+        <blockquote class="testimonial">
+          <p>"Professional service with a caring touch. Highly recommended for families!"</p>
+          <cite>- Priya Sharma</cite>
+        </blockquote>
+        <blockquote class="testimonial">
+          <p>"My smile has completely changed. Thank you, Surabi Dental!"</p>
+          <cite>- Arjun Patel</cite>
+        </blockquote>
+      {% endif %}
     </div>
   </div>
 </section>
@@ -160,54 +175,6 @@
             {% endif %}
         </form>
     </div>
-</section>
-
-<!-- Feedback Section -->
-<section class="feedback-section reveal" id="feedback" aria-labelledby="feedback-heading">
-  <div class="container">
-    <h2 id="feedback-heading">Share Your Feedback</h2>
-    <p class="feedback-subtitle">Tell us about your experience at Surabi Dental Clinic</p>
-    
-    <div class="feedback-container">
-      <div class="feedback-form-wrapper">
-        <form id="feedback-form" class="feedback-form">
-            {% csrf_token %}
-            <div class="feedback-field">
-                <label for="feedback-name">Your Name</label>
-                <input type="text" id="feedback-name" name="name" required>
-            </div>
-            <div class="feedback-field">
-                <label for="feedback-email">Email</label>
-                <input type="email" id="feedback-email" name="email" required>
-            </div>
-            <div class="feedback-field">
-                <label for="feedback-rating">Rating</label>
-                <select id="feedback-rating" name="rating" required>
-                    <option value="">-- Select Rating --</option>
-                    <option value="5">⭐⭐⭐⭐⭐ Excellent</option>
-                    <option value="4">⭐⭐⭐⭐ Good</option>
-                    <option value="3">⭐⭐⭐ Average</option>
-                    <option value="2">⭐⭐ Poor</option>
-                    <option value="1">⭐ Very Poor</option>
-                </select>
-            </div>
-            <div class="feedback-field">
-                <label for="feedback-message">Your Feedback</label>
-                <textarea id="feedback-message" name="feedback_text" rows="4" required></textarea>
-            </div>
-            <button type="submit" class="btn btn-primary">Submit Feedback</button>
-            <div id="feedback-status" style="margin-top: 10px;"></div>
-        </form>
-      </div>
-      
-      <div class="feedback-display-wrapper">
-        <h3>Recent Feedback</h3>
-        <div id="feedback-testimonial">
-            <p style="text-align: center; color: #999;">Loading feedback...</p>
-        </div>
-      </div>
-    </div>
-  </div>
 </section>
 
 {% endblock %}

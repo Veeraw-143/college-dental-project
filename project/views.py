@@ -36,9 +36,11 @@ def is_sunday(date_obj):
 def home(request):
     doctors = Doctor.objects.filter(is_active=True)
     services = Service.objects.filter(is_active=True)
+    feedbacks = Feedback.objects.filter(is_active=True).order_by('-created_at')[:3]
     context = {
         'doctors': doctors,
         'services': services,
+        'feedbacks': feedbacks,
     }
     return render(request, 'home.html', context)
 
@@ -64,6 +66,15 @@ def doctors_view(request):
 def contact_view(request):
     """Display contact page"""
     return render(request, 'contact.html', {})
+
+
+def feedback_view(request):
+    """Display feedback page"""
+    feedbacks = Feedback.objects.filter(is_active=True).order_by('-created_at')[:6]
+    context = {
+        'feedbacks': feedbacks,
+    }
+    return render(request, 'feedback.html', context)
 
 
 def send_otp(request):
@@ -638,13 +649,15 @@ def submit_feedback(request):
     """Handle feedback submission via AJAX"""
     if request.method == 'POST':
         name = request.POST.get('name', '').strip()
+        email = request.POST.get('email', '').strip()
         message = request.POST.get('message', '').strip()
+        rating = request.POST.get('rating', '5').strip()
         
         # Validate input
-        if not name or not message:
+        if not name or not email or not message:
             return JsonResponse({
                 'success': False,
-                'error': 'Please provide both name and feedback message'
+                'error': 'Please provide name, email, and feedback message'
             })
         
         if len(message) > 500:
@@ -653,11 +666,21 @@ def submit_feedback(request):
                 'error': 'Feedback message is too long (max 500 characters)'
             })
         
+        # Validate rating
+        try:
+            rating = int(rating)
+            if rating < 1 or rating > 5:
+                rating = 5
+        except (ValueError, TypeError):
+            rating = 5
+        
         try:
             # Create feedback entry
             feedback = Feedback.objects.create(
                 name=name,
+                email=email,
                 message=message,
+                rating=rating,
                 is_active=True
             )
             
@@ -667,7 +690,9 @@ def submit_feedback(request):
                 'feedback': {
                     'id': feedback.id,
                     'name': feedback.name,
+                    'email': feedback.email,
                     'message': feedback.message,
+                    'rating': feedback.rating,
                     'created_at': feedback.created_at.strftime('%Y-%m-%d %H:%M:%S')
                 }
             }, status=200)

@@ -403,8 +403,18 @@ class bookings(models.Model):
 # ============= FEEDBACK MODEL =============
 
 class Feedback(models.Model):
+    RATING_CHOICES = [
+        (1, '1 - Very Poor'),
+        (2, '2 - Poor'),
+        (3, '3 - Average'),
+        (4, '4 - Good'),
+        (5, '5 - Excellent'),
+    ]
+    
     name = models.CharField(max_length=100)
+    email = models.EmailField(default='')
     message = models.TextField(max_length=500)
+    rating = models.IntegerField(choices=RATING_CHOICES, default=5)
     created_at = models.DateTimeField(auto_now_add=True)
     is_active = models.BooleanField(default=True)
 

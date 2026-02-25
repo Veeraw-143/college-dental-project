@@ -38,6 +38,7 @@ body{
   padding:16px 12px;
   border-radius:0 0 18px 18px;
   width: 100%;
+  margin-bottom: 20px;
 }
 .header-inner{
   display:flex;
@@ -57,6 +58,28 @@ body{
 
 /* Navigation */
 .nav{background:transparent;margin-top:8px}
+.nav-fixed {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 1000;
+  background: rgba(255, 255, 255, 0.98);
+  backdrop-filter: blur(10px);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  margin-top: 0;
+}
+body.dark .nav-fixed {
+  background: rgba(6, 44, 48, 0.98);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+html {
+  scroll-behavior: smooth;
+  scroll-padding-top: 80px;
+}
+body {
+  padding-top: 80px;
+}
 .nav-inner{
   max-width:1100px;
   margin:8px auto;
@@ -526,6 +549,15 @@ body.dark .slot.expired {
   opacity: 0.75;
   text-decoration: line-through;
   font-size: 0.95em;
+}
+
+/* Date Input Styling */
+input[type="date"],
+input[type="date"]::-webkit-calendar-picker-indicator {
+  color: black;
+}
+input[type="date"]::-webkit-datetime-edit {
+  color: black;
 }
 
 /* Dark theme time input */
@@ -1165,7 +1197,8 @@ body.dark .map-placeholder {
   grid-template-columns: 1fr 1fr;
   gap: 24px;
   align-items: start;
-
+  max-width: 900px;
+  margin: 0 auto;
 }
 
 .feedback-form-wrapper,
@@ -1175,6 +1208,8 @@ body.dark .map-placeholder {
   background: linear-gradient(180deg, #ffffff, #f8ffff);
   box-shadow: var(--shadow);
   transition: all 0.28s ease;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 body.dark .feedback-form-wrapper,

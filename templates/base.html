@@ -45,13 +45,14 @@
 </header>
 
 <!-- Navigation -->
-<nav class="nav" role="navigation" aria-label="Main navigation">
+<nav class="nav nav-fixed" role="navigation" aria-label="Main navigation">
     <div class="nav-inner">
         <div class="nav-links">
             <a href="{% url 'home' %}" class="nav-link">Home</a>
             <a href="{% url 'services' %}" class="nav-link">Services</a>
             <a href="{% url 'doctors' %}" class="nav-link">Doctors</a>
             <a href="{% url 'contact' %}" class="nav-link">Contact</a>
+            <a href="{% url 'feedback' %}" class="nav-link">Feedback</a>
             <a href="{% url 'home' %}#appointment" class="nav-link">Appointment</a>
         </div>
         <div class="nav-actions">
