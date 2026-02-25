@@ -596,12 +596,21 @@ document.addEventListener('DOMContentLoaded', () => {
         const formData = new FormData();
         formData.append('name', name);
         formData.append('message', message);
-        formData.append('csrfmiddlewaretoken', getCookie('csrftoken'));
+        
+        // Get CSRF token from the form's hidden input
+        const csrfInput = feedbackForm.querySelector('[name="csrfmiddlewaretoken"]');
+        if (csrfInput) {
+          formData.append('csrfmiddlewaretoken', csrfInput.value);
+        }
 
         const response = await fetch('/api/submit-feedback/', {
           method: 'POST',
           body: formData
         });
+
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
 
         const data = await response.json();
 

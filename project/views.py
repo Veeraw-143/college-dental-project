@@ -670,18 +670,18 @@ def submit_feedback(request):
                     'message': feedback.message,
                     'created_at': feedback.created_at.strftime('%Y-%m-%d %H:%M:%S')
                 }
-            })
+            }, status=200)
         except Exception as e:
             logger.exception('Error creating feedback: %s', e)
             return JsonResponse({
                 'success': False,
                 'error': 'An error occurred while submitting your feedback'
-            })
+            }, status=400)
     
     return JsonResponse({
         'success': False,
         'error': 'Invalid request method'
-    })
+    }, status=405)
 
 
 def get_all_feedback(request):
