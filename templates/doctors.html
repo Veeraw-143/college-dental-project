@@ -11,51 +11,84 @@
 </section>
 
 <!-- Doctors Section -->
-<section class="team reveal" id="team" style="padding: 40px 12px;">
-  <div class="container">
-    <div class="team-grid">
+<section class="team reveal" id="team" style="padding: 60px 20px; background: #f8f9fa;">
+  <div class="container" style="max-width: 1200px; margin: 0 auto;">
+    <div class="team-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 30px; margin-top: 40px;">
       {% if doctors %}
         {% for doctor in doctors %}
-          <article class="team-member">
-            {% if doctor.photo %}
-              <img src="{{ doctor.photo.url }}" alt="{{ doctor.name }}" style="width: 100%; height: 250px; object-fit: cover; border-radius: 8px 8px 0 0;">
-            {% else %}
-              <div style="width: 100%; height: 250px; background: #e0e0e0; border-radius: 8px 8px 0 0; display: flex; align-items: center; justify-content: center;">
-                <span style="font-size: 60px;">👨‍⚕️</span>
-              </div>
-            {% endif %}
-            <div style="padding: 20px;">
-              <h4>{{ doctor.name }}</h4>
-              <p class="specialization" style="color: #2fa4a9; font-weight: bold; margin: 5px 0;">{{ doctor.specialization }}</p>
-              <p class="experience" style="font-size: 14px; color: #666; margin: 5px 0;">
-                <span style="display: inline-block; background: #f0f0f0; padding: 4px 8px; border-radius: 4px;">
-                  {{ doctor.experience_years }} Years Experience
-                </span>
-              </p>
-              {% if doctor.bio %}
-                <p style="font-size: 14px; margin: 10px 0; line-height: 1.5;">{{ doctor.bio }}</p>
+          <article class="team-member" style="background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 6px 20px rgba(0,0,0,0.08); transition: all 0.3s ease; display: flex; flex-direction: column; height: 100%;">
+            <!-- Image Container -->
+            <div style="position: relative; width: 100%; height: 280px; background: linear-gradient(135deg, #2fa4a9, #1e7c81); overflow: hidden; flex-shrink: 0;">
+              {% if doctor.photo %}
+                <img src="{{ doctor.photo.url }}" 
+                     alt="{{ doctor.name }}" 
+                     style="width: 100%; height: 100%; object-fit: cover; display: block; transition: opacity 0.4s ease; opacity: 1;"
+                     onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                <div style="display: none; width: 100%; height: 100%; background: linear-gradient(135deg, #2fa4a9, #1e7c81); align-items: center; justify-content: center; font-size: 100px; color: white;">👨‍⚕️</div>
+              {% else %}
+                <div style="width: 100%; height: 100%; background: linear-gradient(135deg, #2fa4a9, #1e7c81); display: flex; align-items: center; justify-content: center; font-size: 100px; color: white;">👨‍⚕️</div>
               {% endif %}
-              <div style="margin-top: 15px; padding-top: 15px; border-top: 1px solid #eee;">
-                <p style="font-size: 13px; margin: 5px 0;"><strong>📞</strong> {{ doctor.phone }}</p>
-                <p style="font-size: 13px; margin: 5px 0;"><strong>📧</strong> <a href="mailto:{{ doctor.email }}" style="color: #2fa4a9; text-decoration: none;">{{ doctor.email }}</a></p>
-                <p style="font-size: 13px; margin: 5px 0;">
-                  <strong>📅 Available:</strong> {% spaceless %}
-                    {% for day in doctor.get_available_days %}
-                      {{ day }}{% if not forloop.last %}, {% endif %}
-                    {% endfor %}
-                  {% endspaceless %}
-                </p>
+            </div>
+            
+            <!-- Content Container -->
+            <div style="padding: 25px; flex-grow: 1; display: flex; flex-direction: column;">
+              <!-- Name -->
+              <h4 style="font-size: 22px; font-weight: 700; margin: 0 0 10px 0; color: #333; line-height: 1.3;">{{ doctor.name }}</h4>
+              
+              <!-- Specialization -->
+              <p style="color: #2fa4a9; font-weight: 600; margin: 0 0 15px 0; font-size: 14px; letter-spacing: 0.5px;">{{ doctor.specialization }}</p>
+              
+              <!-- Experience Badge -->
+              <div style="display: inline-block; background: #e8f4f5; padding: 8px 14px; border-radius: 20px; margin-bottom: 15px; width: fit-content;">
+                <span style="font-size: 13px; color: #2fa4a9; font-weight: 600;">⭐ {{ doctor.experience_years }} Years</span>
               </div>
-              <a href="{% url 'home' %}#appointment" class="btn btn-primary" style="width: 100%; margin-top: 15px; text-align: center; display: block; padding: 10px;">
-                Book with {{ doctor.name|truncatewords:1 }}
+              
+              <!-- Bio -->
+              {% if doctor.bio %}
+                <p style="font-size: 13px; margin: 0 0 15px 0; line-height: 1.6; color: #666; text-align: justify;">{{ doctor.bio }}</p>
+              {% endif %}
+              
+              <!-- Contact Info Section -->
+              <div style="margin-top: auto; padding-top: 15px; border-top: 2px solid #f0f0f0;">
+                <!-- Phone -->
+                <div style="display: flex; align-items: center; margin-bottom: 10px;">
+                  <span style="font-size: 18px; margin-right: 10px;">📞</span>
+                  <a href="tel:{{ doctor.phone }}" style="font-size: 13px; color: #2fa4a9; text-decoration: none; font-weight: 500; word-break: break-all;">{{ doctor.phone }}</a>
+                </div>
+                
+                <!-- Email -->
+                <div style="display: flex; align-items: flex-start; margin-bottom: 12px;">
+                  <span style="font-size: 18px; margin-right: 10px; flex-shrink: 0;">📧</span>
+                  <a href="mailto:{{ doctor.email }}" style="font-size: 12px; color: #2fa4a9; text-decoration: none; font-weight: 500; word-break: break-word; flex: 1;">{{ doctor.email }}</a>
+                </div>
+                
+                <!-- Availability Days -->
+                <div style="margin-top: 12px;">
+                  <div style="font-size: 12px; color: #666; font-weight: 600; margin-bottom: 8px; display: flex; align-items: center;">
+                    <span style="margin-right: 8px;">📅</span> Available:
+                  </div>
+                  <div style="display: flex; flex-wrap: wrap; gap: 6px;">
+                    {% for day in doctor.get_available_days %}
+                      <span style="display: inline-block; background: #e8f4f5; color: #2fa4a9; padding: 4px 10px; border-radius: 12px; font-size: 11px; font-weight: 600;">{{ day }}</span>
+                    {% endfor %}
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <!-- Book Button -->
+            <div style="padding: 0 25px 25px 25px;">
+              <a href="{% url 'home' %}#appointment" style="width: 100%; display: block; text-align: center; padding: 14px; background: linear-gradient(135deg, #2fa4a9, #1e7c81); color: white; text-decoration: none; border-radius: 6px; font-weight: 600; font-size: 14px; transition: all 0.3s ease; border: 2px solid transparent;" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 8px 20px rgba(47, 164, 169, 0.3)';" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='none';">
+                📅 Book Appointment
               </a>
             </div>
           </article>
         {% endfor %}
       {% else %}
-        <div style="grid-column: 1/-1; text-align: center; padding: 40px;">
-          <h3 style="color: #666;">No doctors available at the moment.</h3>
-          <p style="color: #999; margin-top: 10px;">Please check back soon or contact us for more information.</p>
+        <div style="grid-column: 1/-1; text-align: center; padding: 80px 20px;">
+          <div style="font-size: 80px; margin-bottom: 20px;">🏥</div>
+          <h3 style="color: #666; font-size: 28px; margin-bottom: 15px; font-weight: 600;">No Doctors Available</h3>
+          <p style="color: #999; font-size: 16px; max-width: 500px; margin: 0 auto;">Our expert medical team is currently unavailable. Please check back soon or contact us for more information.</p>
         </div>
       {% endif %}
     </div>
@@ -63,39 +96,54 @@
 </section>
 
 <!-- Doctor Qualifications Section -->
-<section style="background: #f9f9f9; padding: 40px 12px; margin: 40px 0;">
-  <div class="container" style="max-width: 900px; margin: 0 auto;">
-    <h2 style="text-align: center; margin-bottom: 30px;">Why Choose Our Doctors?</h2>
-    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px;">
-      <div style="text-align: center;">
-        <div style="font-size: 40px; margin-bottom: 10px;">🎓</div>
-        <h4>Highly Qualified</h4>
-        <p>All doctors are BDS/MDS certified from reputed institutions with continuous education.</p>
+<section style="background: white; padding: 80px 20px;">
+  <div class="container" style="max-width: 1000px; margin: 0 auto;">
+    <div style="text-align: center; margin-bottom: 60px;">
+      <h2 style="font-size: 36px; color: #333; font-weight: 700; margin-bottom: 15px;">Why Choose Our Doctors?</h2>
+      <p style="font-size: 16px; color: #666; max-width: 600px; margin: 0 auto;">Our team consists of highly qualified, experienced, and compassionate dental professionals committed to your oral health.</p>
+    </div>
+    
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 40px;">
+      <!-- Qualification 1 -->
+      <div style="text-align: center; padding: 30px;">
+        <div style="font-size: 60px; margin-bottom: 20px; display: inline-block; background: #e8f4f5; width: 100px; height: 100px; display: flex; align-items: center; justify-content: center; border-radius: 50%;">🎓</div>
+        <h4 style="font-size: 18px; color: #333; font-weight: 700; margin-bottom: 12px;">Highly Qualified</h4>
+        <p style="font-size: 14px; color: #666; line-height: 1.6;">All doctors are BDS/MDS certified from reputed institutions with continuous professional education.</p>
       </div>
-      <div style="text-align: center;">
-        <div style="font-size: 40px; margin-bottom: 10px;">⭐</div>
-        <h4>Experienced</h4>
-        <p>Average 15+ years of experience in their respective dental specializations.</p>
+      
+      <!-- Qualification 2 -->
+      <div style="text-align: center; padding: 30px;">
+        <div style="font-size: 60px; margin-bottom: 20px; display: inline-block; background: #e8f4f5; width: 100px; height: 100px; display: flex; align-items: center; justify-content: center; border-radius: 50%;">⭐</div>
+        <h4 style="font-size: 18px; color: #333; font-weight: 700; margin-bottom: 12px;">Highly Experienced</h4>
+        <p style="font-size: 14px; color: #666; line-height: 1.6;">Average 15+ years of experience in their respective dental specializations and treatments.</p>
       </div>
-      <div style="text-align: center;">
-        <div style="font-size: 40px; margin-bottom: 10px;">❤️</div>
-        <h4>Patient-Focused</h4>
-        <p>We prioritize comfort and care, making every patient feel valued and heard.</p>
+      
+      <!-- Qualification 3 -->
+      <div style="text-align: center; padding: 30px;">
+        <div style="font-size: 60px; margin-bottom: 20px; display: inline-block; background: #e8f4f5; width: 100px; height: 100px; display: flex; align-items: center; justify-content: center; border-radius: 50%;">❤️</div>
+        <h4 style="font-size: 18px; color: #333; font-weight: 700; margin-bottom: 12px;">Patient-Focused Care</h4>
+        <p style="font-size: 14px; color: #666; line-height: 1.6;">We prioritize comfort, care, and communication, making every patient feel valued and heard.</p>
       </div>
-      <div style="text-align: center;">
-        <div style="font-size: 40px; margin-bottom: 10px;">🏆</div>
-        <h4>Award-Winning</h4>
-        <p>Recognized for excellence in dental care and patient satisfaction.</p>
+      
+      <!-- Qualification 4 -->
+      <div style="text-align: center; padding: 30px;">
+        <div style="font-size: 60px; margin-bottom: 20px; display: inline-block; background: #e8f4f5; width: 100px; height: 100px; display: flex; align-items: center; justify-content: center; border-radius: 50%;">🏆</div>
+        <h4 style="font-size: 18px; color: #333; font-weight: 700; margin-bottom: 12px;">Award-Winning Service</h4>
+        <p style="font-size: 14px; color: #666; line-height: 1.6;">Recognized for excellence in dental care, innovation, and outstanding patient satisfaction ratings.</p>
       </div>
     </div>
   </div>
 </section>
 
 <!-- Call to Action -->
-<section style="background: linear-gradient(135deg, #2fa4a9, #1e7c81); color: white; padding: 40px 20px; text-align: center;">
-    <h2 style="margin-bottom: 20px;">Schedule Your Appointment Today</h2>
-    <p style="font-size: 18px; margin-bottom: 20px;">Choose your preferred doctor and book a consultation</p>
-    <a href="{% url 'home' %}#appointment" class="btn btn-primary">Book Now</a>
+<section style="background: linear-gradient(135deg, #2fa4a9, #1e7c81); color: white; padding: 80px 20px; text-align: center;">
+    <div style="max-width: 800px; margin: 0 auto;">
+      <h2 style="font-size: 40px; font-weight: 700; margin-bottom: 15px;">Schedule Your Appointment Today</h2>
+      <p style="font-size: 18px; margin-bottom: 35px; opacity: 0.95; line-height: 1.6;">Choose your preferred doctor and book a consultation. Our team is ready to help care for your dental health with the latest techniques and compassionate service.</p>
+      <a href="{% url 'home' %}#appointment" style="display: inline-block; padding: 16px 45px; background: white; color: #2fa4a9; text-decoration: none; border-radius: 6px; font-weight: 700; font-size: 16px; transition: all 0.3s ease; box-shadow: 0 6px 20px rgba(0,0,0,0.15);" onmouseover="this.style.transform='translateY(-3px)'; this.style.boxShadow='0 10px 30px rgba(0,0,0,0.2)';" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 6px 20px rgba(0,0,0,0.15)';">
+        📅 Book Now
+      </a>
+    </div>
 </section>
 
 {% endblock %}

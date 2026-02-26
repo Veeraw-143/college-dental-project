@@ -35,6 +35,7 @@ ALLOWED_HOSTS = ['*', 'localhost', '127.0.0.1', 'testserver']
 # Application definition
 
 INSTALLED_APPS = [
+    'jazzmin',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -143,4 +144,90 @@ EMAIL_USE_TLS = True
 EMAIL_HOST_USER = 'pulipandi8158@gmail.com'
 EMAIL_HOST_PASSWORD = 'kovy ruva fjco aiug'
 
+
+# Jazzmin Configuration for Enhanced Django Admin
+JAZZMIN_SETTINGS = {
+    "site_header": "Surabi Dental Clinic",
+    "site_title": "Clinic Admin",
+    "brand": "Surabi Dental",
+    "welcome_sign": "Welcome to Surabi Dental Clinic Admin",
+    "copyright": "Surabi Dental Clinic 2024-2025",
+    
+    # UI Configuration
+    "search_model": ["project.Doctor", "project.Service", "project.Bookings"],
+    "user_avatar": None,
+    
+    # Theme & Colors
+    "theme": "default",
+    "dark_mode_theme": "darkly",
+    
+    # Custom CSS/JS
+    "custom_css": None,
+    "custom_js": None,
+    
+    # Navbar settings
+    "show_sidebar": True,
+    "navigation_expanded": True,
+    
+    # Icons
+    "icons": {
+        "auth": "fas fa-users-cog",
+        "auth.user": "fas fa-user",
+        "auth.Group": "fas fa-users",
+        "project.Doctor": "fas fa-user-md",
+        "project.Service": "fas fa-stethoscope",
+        "project.Bookings": "fas fa-calendar-check",
+        "project.OTPVerification": "fas fa-shield-alt",
+        "project.Feedback": "fas fa-comments",
+    },
+    
+    # Sidebar configurations
+    "show_search": True,
+    "show_recent": True,
+    "order_with_respect_to": ["auth", "project"],
+    
+    # Hide specific models
+    "hide_models": [],
+    
+    # Hide specific apps
+    "hide_apps": [],
+    
+    # Customizable admin title and branding
+    "default_icon_children": "fas fa-chevron-right",
+    "related_modal_theme": "dark",
+    
+    # Footer
+    "show_footer": True,
+    "footer_text": "Surabi Dental Clinic Management System",
+    
+    # Toasts
+    "show_ui_builder": False,
+    "ui_tweaks": {
+        "navbar_small": False,
+        "footer_small": False,
+        "body_small": False,
+        "brand_small": False,
+        "brand_colour": False,
+        "accent": "accent-primary",
+        "navbar": "navbar-white",
+        "sidebar": "sidebar-dark-primary",
+        "sidebar_nav_small_text": False,
+        "sidebar_disable_expand": False,
+        "sidebar_nav_child_indent": False,
+        "sidebar_nav_compact_style": False,
+        "sidebar_nav_legacy_style": False,
+        "sidebar_nav_flat_style": False,
+    }
+}
+
+JAZZMIN_UI_TWEAKS = {
+    "navbar_small": False,
+    "footer_small": False,
+    "body_small": False,
+    "brand_small": False,
+    "brand_colour": "navbar-success",
+    "accent": "accent-primary",
+    "navbar": "navbar-white navbar-light",
+    "sidebar": "sidebar-dark-primary",
+}
 

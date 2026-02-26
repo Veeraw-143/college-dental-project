@@ -16,15 +16,12 @@ class DoctorAdmin(admin.ModelAdmin):
     search_fields = ('name', 'specialization', 'email')
     list_filter = ('is_active', 'created_at')
     readonly_fields = ('created_at', 'photo_preview')
+    
+    # Single fieldset - all information on one page for easy data entry
     fieldsets = (
-        ('Doctor Information', {'fields': ('name', 'specialization', 'bio', 'photo', 'photo_preview')}),
-        ('Contact Details', {'fields': ('email', 'phone')}),
-        ('Professional Info', {'fields': ('experience_years', 'is_active')}),
-        ('Availability', {
-            'fields': ('availability_days',),
-            'description': 'Enter days separated by commas (e.g., Mon,Tue,Wed,Thu,Fri,Sat)'
+        (None, {
+            'fields': ('name', 'specialization', 'email', 'phone', 'experience_years', 'bio', 'photo', 'photo_preview', 'availability_days', 'is_active', 'created_at')
         }),
-        ('Timestamps', {'fields': ('created_at',)}),
     )
     
     def photo_preview(self, obj):
@@ -59,10 +56,12 @@ class ServiceAdmin(admin.ModelAdmin):
     search_fields = ('name', 'description')
     list_filter = ('is_active', 'created_at')
     readonly_fields = ('created_at',)
+    
+    # Single fieldset - all information on one page
     fieldsets = (
-        ('Service Information', {'fields': ('name', 'description')}),
-        ('Details', {'fields': ('duration_minutes', 'cost', 'is_active')}),
-        ('Timestamps', {'fields': ('created_at',)}),
+        (None, {
+            'fields': ('name', 'description', 'duration_minutes', 'cost', 'is_active', 'created_at')
+        }),
     )
 
     def duration_display(self, obj):
@@ -87,9 +86,12 @@ class OTPVerificationAdmin(admin.ModelAdmin):
     search_fields = ('email',)
     list_filter = ('is_verified', 'created_at')
     readonly_fields = ('created_at', 'expires_at')
+    
+    # Single fieldset - all information on one page
     fieldsets = (
-        ('OTP Information', {'fields': ('email', 'otp_code', 'is_verified')}),
-        ('Attempts & Expiry', {'fields': ('attempts', 'created_at', 'expires_at')}),
+        (None, {
+            'fields': ('email', 'otp_code', 'is_verified', 'attempts', 'created_at', 'expires_at')
+        }),
     )
     can_delete = True
 
@@ -132,24 +134,11 @@ class BookingsAdmin(admin.ModelAdmin):
     ordering = ('-created_at',)
     actions = ['accept_bookings', 'reject_bookings', 'mark_completed', 'send_reminder_email']
 
+    # Single fieldset - all information on one page for easy data entry
     fieldsets = (
-        ('Patient Information', {
-            'fields': ('Name', 'mail', 'mobile'),
-            'description': 'Patient contact details'
+        (None, {
+            'fields': ('Name', 'mail', 'mobile', 'appointment_date', 'time', 'preferred_doctor', 'preferred_service', 'status', 'otp_verified', 'reminder_sent', 'appointment_summary', 'created_at')
         }),
-        ('Appointment Details', {
-            'fields': ('appointment_date', 'time_display', 'preferred_doctor', 'preferred_service'),
-            'description': 'Appointment scheduling information'
-        }),
-        ('Status & Verification', {
-            'fields': ('status', 'otp_verified', 'reminder_sent'),
-            'description': 'Current status and verification state'
-        }),
-        ('Summary', {
-            'fields': ('appointment_summary',),
-            'description': 'Quick overview of the appointment'
-        }),
-        ('Timestamps', {'fields': ('created_at',)}),
     )
 
     def booking_id(self, obj):
@@ -345,10 +334,12 @@ class FeedbackAdmin(admin.ModelAdmin):
     search_fields = ('name', 'message')
     list_filter = ('is_active', 'created_at')
     readonly_fields = ('created_at',)
+    
+    # Single fieldset - all information on one page
     fieldsets = (
-        ('Feedback Information', {'fields': ('name', 'message')}),
-        ('Status', {'fields': ('is_active',)}),
-        ('Timestamps', {'fields': ('created_at',)}),
+        (None, {
+            'fields': ('name', 'message', 'is_active', 'created_at')
+        }),
     )
 
     def message_preview(self, obj):
