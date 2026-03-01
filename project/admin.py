@@ -1,7 +1,7 @@
 from django.contrib import admin, messages
 from django.urls import reverse
 import logging
-from project.models import bookings, Doctor, Service, OTPVerification, Feedback
+from project.models import bookings, Doctor, Service, OTPVerification, Feedback, ExcelSync
 from django.utils.html import format_html
 from datetime import datetime, timedelta
 from django.utils import timezone
@@ -354,7 +354,47 @@ class FeedbackAdmin(admin.ModelAdmin):
     is_active_display.short_description = 'Status'
 
 
-# Customize the admin site
-admin.site.site_header = "Surabi Dental Care"
-admin.site.site_title = "Admin Portal"
+# ============= EXCEL SYNC ADMIN =============
+@admin.register(ExcelSync)
+class ExcelSyncAdmin(admin.ModelAdmin):
+    list_display = ('model_name', 'record_count', 'last_exported_display', 'last_imported_display', 'sync_status', 'sync_enabled')
+    readonly_fields = ('model_name', 'last_exported', 'last_imported', 'last_synced', 'excel_file_path', 'record_count')
+    list_filter = ('sync_enabled', 'model_name')
+    search_fields = ('model_name',)
+    
+    fieldsets = (
+        ('Model Information', {
+            'fields': ('model_name', 'sync_enabled', 'record_count')
+        }),
+        ('Sync Status', {
+            'fields': ('last_exported', 'last_imported', 'last_synced', 'excel_file_path'),
+            'description': 'Read-only information about last synchronization'
+        }),
+        ('Error Handling', {
+            'fields': ('last_error',),
+            'classes': ('collapse',)
+        }),
+    )
+    
+    def last_exported_display(self, obj):
+        if obj.last_exported:
+            return obj.last_exported.strftime('%Y-%m-%d %H:%M:%S')
+        return '—'
+    last_exported_display.short_description = 'Last Exported'
+    
+    def last_imported_display(self, obj):
+        if obj.last_imported:
+            return obj.last_imported.strftime('%Y-%m-%d %H:%M:%S')
+        return '—'
+    last_imported_display.short_description = 'Last Imported'
+    
+    def sync_status(self, obj):
+        if obj.last_error:
+            return format_html('<span style="color: red; font-weight: bold;">⚠ Error</span>')
+        elif obj.last_synced:
+            return format_html('<span style="color: green; font-weight: bold;">✓ Synced</span>')
+        return format_html('<span style="color: orange; font-weight: bold;">○ Pending</span>')
+    sync_status.short_description = 'Status'
+
+
 admin.site.index_title = "Dashboard"

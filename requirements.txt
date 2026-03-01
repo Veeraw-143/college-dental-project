@@ -4,4 +4,6 @@ pillow
 django-jazzmin 
 plotly 
 pandas 
-numpy 
+numpy
+openpyxl
+xlsxwriter 

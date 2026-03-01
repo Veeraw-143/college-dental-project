@@ -427,3 +427,55 @@ class Feedback(models.Model):
         return f"{self.name} - {self.created_at.strftime('%Y-%m-%d %H:%M')}"
 
 
+# ============= EXCEL SYNC MODEL =============
+
+class ExcelSync(models.Model):
+    """Track Excel and database synchronization status"""
+    
+    MODEL_CHOICES = [
+        ('Doctor', 'Doctor'),
+        ('Service', 'Service'),
+        ('bookings', 'Bookings'),
+        ('Feedback', 'Feedback'),
+        ('OTPVerification', 'OTP Verification'),
+    ]
+    
+    model_name = models.CharField(max_length=50, choices=MODEL_CHOICES)
+    last_exported = models.DateTimeField(null=True, blank=True, help_text='Last time data was exported to Excel')
+    last_imported = models.DateTimeField(null=True, blank=True, help_text='Last time data was imported from Excel')
+    last_synced = models.DateTimeField(auto_now=True, help_text='Last sync check time')
+    excel_file_path = models.CharField(max_length=255, blank=True, help_text='Path to the Excel file')
+    record_count = models.IntegerField(default=0, help_text='Number of records in Excel')
+    sync_enabled = models.BooleanField(default=True, help_text='Enable automatic sync for this model')
+    last_error = models.TextField(blank=True, help_text='Last error message if any')
+    
+    class Meta:
+        verbose_name = 'Excel Sync'
+        verbose_name_plural = 'Excel Sync Status'
+        unique_together = ('model_name',)
+        ordering = ['model_name']
+    
+    def __str__(self):
+        return f"{self.model_name} - Last synced: {self.last_synced.strftime('%Y-%m-%d %H:%M') if self.last_synced else 'Never'}"
+    
+    def mark_exported(self, filepath, record_count):
+        """Mark model as exported"""
+        self.last_exported = timezone.now()
+        self.excel_file_path = filepath
+        self.record_count = record_count
+        self.last_error = ''
+        self.save()
+    
+    def mark_imported(self, record_count):
+        """Mark model as imported"""
+        self.last_imported = timezone.now()
+        self.record_count = record_count
+        self.last_error = ''
+        self.save()
+    
+    def mark_error(self, error_message):
+        """Mark sync error"""
+        self.last_error = error_message
+        self.save()
+
+
