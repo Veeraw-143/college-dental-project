@@ -867,7 +867,6 @@ body.dark input[type="time"]::-webkit-datetime-edit-minute-field:hover{
 @media (max-width:720px){
   .hero h2{font-size:22px}
   .hero-content{padding:20px 12px}
-  .nav-links{display:none}
   .nav-inner { gap: 6px; }
 }
 
@@ -893,6 +892,13 @@ body.dark input[type="time"]::-webkit-datetime-edit-minute-field:hover{
   .theme-toggle {
     padding: 5px 8px;
     font-size: 14px;
+  }
+  .nav-links {
+    gap: 4px;
+  }
+  .nav-link {
+    font-size: 12px;
+    padding: 4px 6px;
   }
 }
 
