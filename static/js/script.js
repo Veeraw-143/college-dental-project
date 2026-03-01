@@ -1,6 +1,63 @@
 // Enhanced script: theme toggle, form validation, OTP, modal, confetti and UI interactions
 
 document.addEventListener('DOMContentLoaded', () => {
+  // ============= NOTIFICATION SYSTEM =============
+  // Create notification container if it doesn't exist
+  if (!document.getElementById('notification-container')) {
+    const container = document.createElement('div');
+    container.id = 'notification-container';
+    container.className = 'notification-container';
+    document.body.appendChild(container);
+  }
+
+  function showNotification(message, type = 'info', title = '', duration = 5000) {
+    const container = document.getElementById('notification-container');
+    const notification = document.createElement('div');
+    notification.className = `notification ${type}`;
+
+    const icons = {
+      success: '✓',
+      error: '✕',
+      warning: '⚠',
+      info: 'ℹ'
+    };
+
+    const titles = {
+      success: title || 'Success',
+      error: title || 'Error',
+      warning: title || 'Warning',
+      info: title || 'Info'
+    };
+
+    notification.innerHTML = `
+      <div class="notification-icon">${icons[type] || icons.info}</div>
+      <div class="notification-content">
+        <div class="notification-title">${titles[type]}</div>
+        <div class="notification-message">${message}</div>
+      </div>
+      <button class="notification-close" aria-label="Close">&times;</button>
+    `;
+
+    const closeBtn = notification.querySelector('.notification-close');
+    closeBtn.addEventListener('click', () => {
+      notification.style.animation = 'slideOutRight 0.3s ease forwards';
+      setTimeout(() => notification.remove(), 300);
+    });
+
+    container.appendChild(notification);
+
+    if (duration > 0) {
+      setTimeout(() => {
+        if (notification.parentElement) {
+          notification.style.animation = 'slideOutRight 0.3s ease forwards';
+          setTimeout(() => notification.remove(), 300);
+        }
+      }, duration);
+    }
+
+    return notification;
+  }
+
   // ============= ELEMENTS =============
   const themeToggle = document.getElementById('theme-toggle');
   const form = document.getElementById('appointment-form');
@@ -28,6 +85,22 @@ document.addEventListener('DOMContentLoaded', () => {
   // State
   let otpVerified = false;
   let selectedSlot = null;
+  let preselectedDoctorId = null;
+
+  // ============= URL PARAMETERS HANDLING =============
+  // Extract doctor ID from URL query parameters
+  const urlParams = new URLSearchParams(window.location.hash.split('?')[1]);
+  if (urlParams.has('doctor_id')) {
+    preselectedDoctorId = urlParams.get('doctor_id');
+    // Pre-select the doctor
+    if (doctorSelect && preselectedDoctorId) {
+      doctorSelect.value = preselectedDoctorId;
+      const field = doctorSelect.closest('.field');
+      if (field) {
+        field.classList.add('filled');
+      }
+    }
+  }
 
   // Set min date to today
   if (dateInput) {
@@ -187,7 +260,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const email = emailOtpInput.value.trim();
       
       if (!email || !email.includes('@')) {
-        alert('Please enter a valid email address');
+        showNotification('Please enter a valid email address', 'warning', 'Invalid Email');
         return;
       }
 
@@ -205,18 +278,18 @@ document.addEventListener('DOMContentLoaded', () => {
       .then(r => r.json())
       .then(data => {
         if (data.success) {
-          alert(`${data.message}\nFor demo: OTP is in the console/email. Check server output.`);
+          showNotification(data.message + ' (Check your email for the OTP code)', 'success', 'OTP Sent');
           if (otpInputSection) otpInputSection.style.display = 'block';
           sendOtpBtn.textContent = 'OTP Sent ✓';
         } else {
-          alert(`Error: ${data.error}`);
+          showNotification(data.error, 'error', 'Failed to Send OTP');
           sendOtpBtn.textContent = 'Send OTP';
           sendOtpBtn.disabled = false;
         }
       })
       .catch(err => {
         console.error('Error:', err);
-        alert('Failed to send OTP. Check console.');
+        showNotification('Failed to send OTP. Please try again.', 'error', 'Connection Error');
         sendOtpBtn.textContent = 'Send OTP';
         sendOtpBtn.disabled = false;
       });
@@ -229,7 +302,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const otp = otpCodeInput?.value?.trim() || '';
 
     if (!otp || otp.length !== 6) {
-      alert('Please enter a 6-digit OTP');
+      showNotification('Please enter a valid 6-digit OTP', 'warning', 'Invalid OTP');
       return;
     }
 
@@ -252,21 +325,57 @@ document.addEventListener('DOMContentLoaded', () => {
         const mailInput = document.getElementById('mail');
         if (mailInput) {
           mailInput.value = email;
+          mailInput.disabled = true;
+          mailInput.setAttribute('readonly', 'readonly');
           const field = mailInput.closest('.field');
           if (field) {
             field.classList.add('filled');
           }
         }
+        // Make OTP section readonly and show appointment info
+        if (emailOtpInput) {
+          emailOtpInput.disabled = true;
+          emailOtpInput.setAttribute('readonly', 'readonly');
+        }
+        if (otpCodeInput) {
+          otpCodeInput.disabled = true;
+          otpCodeInput.setAttribute('readonly', 'readonly');
+        }
+        if (sendOtpBtn) {
+          sendOtpBtn.disabled = true;
+          sendOtpBtn.style.display = 'none';
+        }
+        if (verifyOtpBtn) {
+          verifyOtpBtn.disabled = true;
+          verifyOtpBtn.style.display = 'none';
+        }
+        if (resendOtpBtn) {
+          resendOtpBtn.disabled = true;
+          resendOtpBtn.style.display = 'none';
+        }
+        
         if (otpVerifiedInput) otpVerifiedInput.value = 'true';
         if (otpInputSection) otpInputSection.style.display = 'none';
         if (otpSuccessDiv) {
           otpSuccessDiv.style.display = 'block';
-          otpSuccessDiv.textContent = '✓ Email verified successfully';
+          otpSuccessDiv.textContent = '✓ Email verified successfully! Please fill in your appointment details below.';
+          otpSuccessDiv.style.color = '#4caf50';
+          otpSuccessDiv.style.padding = '12px';
+          otpSuccessDiv.style.backgroundColor = '#e8f5e9';
+          otpSuccessDiv.style.borderRadius = '6px';
         }
         if (submitBtn) submitBtn.disabled = false;
         if (verifyOtpBtn) verifyOtpBtn.textContent = 'Verified ✓';
+        
+        // Scroll to appointment preferences section
+        const appointmentPrefSection = document.querySelector('[id*="appointment"]')?.parentElement?.querySelector('h3');
+        if (appointmentPrefSection) {
+          setTimeout(() => {
+            appointmentPrefSection.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          }, 300);
+        }
       } else {
-        alert(`Error: ${data.error}`);
+        showNotification(data.error, 'error', 'OTP Verification Failed');
         if (verifyOtpBtn) {
           verifyOtpBtn.textContent = 'Verify OTP';
           verifyOtpBtn.disabled = false;
@@ -275,7 +384,7 @@ document.addEventListener('DOMContentLoaded', () => {
     })
     .catch(err => {
       console.error('Error:', err);
-      alert('Error verifying OTP. Check console.');
+      showNotification('Error verifying OTP. Please try again.', 'error', 'Verification Error');
       if (verifyOtpBtn) {
         verifyOtpBtn.textContent = 'Verify OTP';
         verifyOtpBtn.disabled = false;
@@ -311,14 +420,14 @@ document.addEventListener('DOMContentLoaded', () => {
       const data = await response.json();
 
       if (data.is_sunday) {
-        alert('Clinic is closed on Sundays. Please select another date.');
+        showNotification('Our clinic is closed on Sundays. Please select a different date.', 'warning', 'Clinic Closed');
         if (dateInput) dateInput.value = '';
         if (slotGrid) slotGrid.innerHTML = '<p style="color: #f44336; text-align: center; grid-column: 1/-1;">Clinic closed on Sundays</p>';
         return;
       }
 
       if (data.doctor_not_available) {
-        alert(data.message || 'Selected doctor is not available on this date.');
+        showNotification(data.message || 'Selected doctor is not available on this date. Please choose another doctor or date.', 'warning', 'Doctor Unavailable');
         if (dateInput) dateInput.value = '';
         if (slotGrid) slotGrid.innerHTML = `<p style="color: #f44336; text-align: center; grid-column: 1/-1;">${data.message || 'Doctor not available'}</p>`;
         return;
@@ -403,6 +512,12 @@ document.addEventListener('DOMContentLoaded', () => {
     e.preventDefault();
     clearErrors();
 
+    // First check if OTP is verified
+    if (otpVerifiedInput?.value !== 'true') {
+      showOtpWarning();
+      return;
+    }
+
     const nameInput = document.getElementById('name');
     const mailInput_form = document.getElementById('mail');
     const timeSlotInput = document.getElementById('time_slot');
@@ -452,6 +567,14 @@ document.addEventListener('DOMContentLoaded', () => {
         if (json.success) {
           setTimeout(() => {
             if (form) form.reset();
+            // Restore preselected doctor if any
+            if (preselectedDoctorId && doctorSelect) {
+              doctorSelect.value = preselectedDoctorId;
+              const field = doctorSelect.closest('.field');
+              if (field) {
+                field.classList.add('filled');
+              }
+            }
             clearOtpSection();
             otpVerified = false;
             if (mobileInput) mobileInput.value = '';
@@ -459,14 +582,18 @@ document.addEventListener('DOMContentLoaded', () => {
             if (submitBtn) submitBtn.disabled = true;
             if (slotGrid) slotGrid.innerHTML = '';
             if (formFeedback) formFeedback.textContent = 'Appointment submitted successfully!';
+            showNotification('Your appointment has been booked successfully! You will receive a confirmation email shortly.', 'success', 'Appointment Confirmed');
           }, 2000);
         } else {
-          if (formFeedback) formFeedback.textContent = 'Error: ' + (json.error || 'Unknown error');
+          const errorMsg = json.error || 'Unknown error occurred';
+          if (formFeedback) formFeedback.textContent = 'Error: ' + errorMsg;
+          showNotification(errorMsg, 'error', 'Booking Failed');
         }
       })
       .catch(err => {
         console.error(err);
-        if (formFeedback) formFeedback.textContent = 'Submission failed. Check console.';
+        if (formFeedback) formFeedback.textContent = 'Submission failed.';
+        showNotification('Failed to submit appointment. Please try again.', 'error', 'Submission Error');
       });
     } else {
       if (form) form.submit();
@@ -480,8 +607,78 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!/^\d{10}$/.test(data.mobile.replace(/[^0-9]/g, ''))) errors.mobile = 'Enter a valid 10-digit phone';
     if (!data.date) errors.date = 'Select a date';
     if (!data.time_slot) errors.time_slot = 'Select a time slot';
-    if (data.otp_verified !== 'true') errors.otp = 'Verify phone with OTP';
     return errors;
+  }
+
+  function showOtpWarning() {
+    // Create and display a prominent warning message
+    const warningContainer = document.createElement('div');
+    warningContainer.id = 'otp-warning-message';
+    warningContainer.style.cssText = `
+      background: linear-gradient(135deg, #fff3cd, #ffe8a1);
+      border: 2px solid #ffc107;
+      border-radius: 12px;
+      padding: 20px;
+      margin: 20px 0;
+      display: flex;
+      align-items: center;
+      gap: 15px;
+      box-shadow: 0 4px 12px rgba(255, 193, 7, 0.3);
+      animation: slideInDown 0.4s ease;
+    `;
+    
+    warningContainer.innerHTML = `
+      <div style="font-size: 32px; flex-shrink: 0;">⚠️</div>
+      <div style="flex: 1;">
+        <h4 style="margin: 0 0 8px 0; color: #856404; font-size: 16px; font-weight: 600;">Email Verification Required</h4>
+        <p style="margin: 0; color: #856404; font-size: 14px;">Please verify your email address using OTP first before booking an appointment. Scroll up to the "Verify Email Address" section and complete the verification process.</p>
+      </div>
+    `;
+    
+    // Remove existing warning if any
+    const existingWarning = document.getElementById('otp-warning-message');
+    if (existingWarning) {
+      existingWarning.remove();
+    }
+    
+    // Insert the warning at the top of the form
+    const appointmentCard = form?.closest('.appointment-card');
+    if (appointmentCard) {
+      appointmentCard.insertBefore(warningContainer, appointmentCard.firstChild);
+    } else if (form) {
+      form.parentElement?.insertBefore(warningContainer, form);
+    }
+    
+    // Scroll to the warning message
+    setTimeout(() => {
+      warningContainer.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }, 100);
+    
+    // Auto-remove after 8 seconds or on fix
+    const removeTimer = setTimeout(() => {
+      if (warningContainer.parentElement) {
+        warningContainer.style.animation = 'slideOutUp 0.3s ease forwards';
+        setTimeout(() => warningContainer.remove(), 300);
+      }
+    }, 8000);
+    
+    // Remove warning when OTP is verified
+    const originalOtpVerify = verifyOtpBtn?.onclick;
+    const checkOtpVerification = () => {
+      if (otpVerifiedInput?.value === 'true' && warningContainer.parentElement) {
+        clearTimeout(removeTimer);
+        warningContainer.style.animation = 'slideOutUp 0.3s ease forwards';
+        setTimeout(() => warningContainer.remove(), 300);
+      }
+    };
+    
+    // Check every 500ms if OTP got verified
+    const checkInterval = setInterval(() => {
+      if (otpVerifiedInput?.value === 'true') {
+        clearInterval(checkInterval);
+        checkOtpVerification();
+      }
+    }, 500);
   }
 
   function showErrors(errors) {
