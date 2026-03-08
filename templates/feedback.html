@@ -1,0 +1,185 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Feedback - Surabi Dental Clinic{% endblock %}
+
+{% block content %}
+<!-- Hero Banner -->
+<section class="page-banner" style="background: linear-gradient(135deg, #2fa4a9, #1e7c81); color: white; padding: 60px 20px; text-align: center;">
+    <h1 style="font-size: 48px; margin-bottom: 10px;">Share Your Feedback</h1>
+    <p style="font-size: 18px; opacity: 0.95;">We value your experience and would love to hear from you</p>
+</section>
+
+<!-- Feedback Section -->
+<section style="padding: 60px 12px; background: #f9f9f9;">
+  <div class="container" style="max-width: 600px;">
+    <div style="background: white; padding: 40px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+      
+      <!-- Feedback Form -->
+      <h2 style="margin-bottom: 30px; color: #333; text-align: center;">Tell Us About Your Experience</h2>
+      <form id="feedback-form" style="display: flex; flex-direction: column; gap: 15px;">
+        {% csrf_token %}
+        
+        <div>
+          <label for="feedback-name" style="display: block; margin-bottom: 5px; font-weight: bold; color: #333;">Name *</label>
+          <input type="text" id="feedback-name" name="name" required style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px; font-size: 14px; box-sizing: border-box; background-color: white; color: black;">
+        </div>
+
+        <div>
+          <label for="feedback-email" style="display: block; margin-bottom: 5px; font-weight: bold; color: #333;">Email *</label>
+          <input type="email" id="feedback-email" name="email" required style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px; font-size: 14px; box-sizing: border-box; background-color: white; color: black;">
+        </div>
+
+        <div>
+          <label style="display: block; margin-bottom: 8px; font-weight: bold; color: #333;">Rating *</label>
+          <div id="star-rating" style="display: flex; gap: 8px; font-size: 28px; margin-bottom: 15px;">
+            <span class="star" data-value="5" style="cursor: pointer; opacity: 0.3; transition: opacity 0.2s;">★</span>
+            <span class="star" data-value="4" style="cursor: pointer; opacity: 0.3; transition: opacity 0.2s;">★</span>
+            <span class="star" data-value="3" style="cursor: pointer; opacity: 0.3; transition: opacity 0.2s;">★</span>
+            <span class="star" data-value="2" style="cursor: pointer; opacity: 0.3; transition: opacity 0.2s;">★</span>
+            <span class="star" data-value="1" style="cursor: pointer; opacity: 0.3; transition: opacity 0.2s;">★</span>
+          </div>
+          <input type="hidden" id="feedback-rating" name="rating" value="">
+          <p id="rating-text" style="color: #666; font-size: 13px; margin-top: -10px;">Click to rate</p>
+        </div>
+
+        <div>
+          <label for="feedback-message" style="display: block; margin-bottom: 5px; font-weight: bold; color: #333;">Your Feedback *</label>
+          <textarea id="feedback-message" name="feedback_text" rows="5" required style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px; font-size: 14px; resize: vertical; font-family: inherit; box-sizing: border-box; background-color: white; color: black;"></textarea>
+        </div>
+
+        <button type="submit" class="btn btn-primary" style="width: 100%; padding: 12px; font-size: 16px; cursor: pointer;">Submit Feedback</button>
+        <div id="feedback-message-display" style="margin-top: 10px; text-align: center;"></div>
+      </form>
+    </div>
+  </div>
+</section>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  const stars = document.querySelectorAll('.star');
+  const ratingInput = document.getElementById('feedback-rating');
+  const ratingText = document.getElementById('rating-text');
+  const feedbackForm = document.getElementById('feedback-form');
+  const feedbackMessageDisplay = document.getElementById('feedback-message-display');
+
+  // Star rating functionality
+  stars.forEach(star => {
+    star.addEventListener('click', () => {
+      const value = star.getAttribute('data-value');
+      ratingInput.value = value;
+      
+      // Update star display
+      stars.forEach(s => {
+        if (s.getAttribute('data-value') <= value) {
+          s.style.opacity = '1';
+          s.style.color = '#2fa4a9';
+        } else {
+          s.style.opacity = '0.3';
+          s.style.color = 'inherit';
+        }
+      });
+      
+      // Update rating text
+      const ratingLabels = {
+        '5': '⭐⭐⭐⭐⭐ Excellent',
+        '4': '⭐⭐⭐⭐ Good',
+        '3': '⭐⭐⭐ Average',
+        '2': '⭐⭐ Poor',
+        '1': '⭐ Very Poor'
+      };
+      ratingText.textContent = ratingLabels[value];
+    });
+
+    // Hover effect
+    star.addEventListener('mouseenter', () => {
+      const value = star.getAttribute('data-value');
+      stars.forEach(s => {
+        if (s.getAttribute('data-value') <= value) {
+          s.style.opacity = '1';
+        } else {
+          s.style.opacity = '0.3';
+        }
+      });
+    });
+  });
+
+  document.addEventListener('mouseleave', () => {
+    const currentValue = ratingInput.value;
+    stars.forEach(s => {
+      if (currentValue && s.getAttribute('data-value') <= currentValue) {
+        s.style.opacity = '1';
+      } else {
+        s.style.opacity = '0.3';
+      }
+    });
+  });
+
+  // Form submission
+  feedbackForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    
+    const name = document.getElementById('feedback-name').value.trim();
+    const email = document.getElementById('feedback-email').value.trim();
+    const rating = ratingInput.value;
+    const message = document.getElementById('feedback-message').value.trim();
+    
+    if (!name || !email || !rating || !message) {
+      feedbackMessageDisplay.textContent = 'Please fill in all fields';
+      feedbackMessageDisplay.style.color = 'red';
+      return;
+    }
+
+    try {
+      const formData = new FormData();
+      formData.append('name', name);
+      formData.append('email', email);
+      formData.append('rating', rating);
+      formData.append('message', message);
+      
+      // Get CSRF token from the form's hidden input
+      const csrfInput = feedbackForm.querySelector('[name="csrfmiddlewaretoken"]');
+      if (csrfInput) {
+        formData.append('csrfmiddlewaretoken', csrfInput.value);
+      }
+
+      const response = await fetch('/api/submit-feedback/', {
+        method: 'POST',
+        body: formData
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
+
+      if (data.success) {
+        feedbackMessageDisplay.textContent = '✓ Thank you for your feedback!';
+        feedbackMessageDisplay.style.color = 'green';
+        feedbackForm.reset();
+        ratingInput.value = '';
+        ratingText.textContent = 'Click to rate';
+        stars.forEach(s => {
+          s.style.opacity = '0.3';
+          s.style.color = 'inherit';
+        });
+        
+        // Reload feedback list
+        setTimeout(() => {
+          location.reload();
+        }, 2000);
+      } else {
+        feedbackMessageDisplay.textContent = 'Error: ' + (data.error || 'Unknown error');
+        feedbackMessageDisplay.style.color = 'red';
+      }
+    } catch (error) {
+      console.error('Feedback submission error:', error);
+      feedbackMessageDisplay.textContent = 'An error occurred. Please try again.';
+      feedbackMessageDisplay.style.color = 'red';
+    }
+  });
+});
+</script>
+
+{% endblock %}
