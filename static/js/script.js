@@ -327,19 +327,28 @@ document.addEventListener('DOMContentLoaded', () => {
           mailInput.value = email;
           mailInput.disabled = true;
           mailInput.setAttribute('readonly', 'readonly');
+          mailInput.classList.add('email-verified');
+          mailInput.style.backgroundColor = '#f0f9f8';
+          mailInput.style.borderColor = '#2fa4a9';
+          mailInput.style.cursor = 'not-allowed';
           const field = mailInput.closest('.field');
           if (field) {
             field.classList.add('filled');
+            field.classList.add('email-verified-field');
           }
         }
         // Make OTP section readonly and show appointment info
         if (emailOtpInput) {
           emailOtpInput.disabled = true;
           emailOtpInput.setAttribute('readonly', 'readonly');
+          emailOtpInput.style.backgroundColor = '#f5f5f5';
+          emailOtpInput.style.cursor = 'not-allowed';
         }
         if (otpCodeInput) {
           otpCodeInput.disabled = true;
           otpCodeInput.setAttribute('readonly', 'readonly');
+          otpCodeInput.style.backgroundColor = '#f5f5f5';
+          otpCodeInput.style.cursor = 'not-allowed';
         }
         if (sendOtpBtn) {
           sendOtpBtn.disabled = true;
@@ -358,22 +367,24 @@ document.addEventListener('DOMContentLoaded', () => {
         if (otpInputSection) otpInputSection.style.display = 'none';
         if (otpSuccessDiv) {
           otpSuccessDiv.style.display = 'block';
-          otpSuccessDiv.textContent = '✓ Email verified successfully! Please fill in your appointment details below.';
-          otpSuccessDiv.style.color = '#4caf50';
-          otpSuccessDiv.style.padding = '12px';
+          otpSuccessDiv.innerHTML = '✓ Email verified successfully! Your email <strong>' + email + '</strong> is now locked for this appointment. Please fill in your appointment details below.';
+          otpSuccessDiv.style.color = '#1b5e20';
+          otpSuccessDiv.style.padding = '16px';
           otpSuccessDiv.style.backgroundColor = '#e8f5e9';
-          otpSuccessDiv.style.borderRadius = '6px';
+          otpSuccessDiv.style.borderRadius = '8px';
+          otpSuccessDiv.style.border = '2px solid #4caf50';
+          otpSuccessDiv.style.fontWeight = '500';
         }
         if (submitBtn) submitBtn.disabled = false;
         if (verifyOtpBtn) verifyOtpBtn.textContent = 'Verified ✓';
         
-        // Scroll to appointment preferences section
-        const appointmentPrefSection = document.querySelector('[id*="appointment"]')?.parentElement?.querySelector('h3');
-        if (appointmentPrefSection) {
-          setTimeout(() => {
-            appointmentPrefSection.scrollIntoView({ behavior: 'smooth', block: 'center' });
-          }, 300);
-        }
+        // Smooth scroll to patient information section
+        setTimeout(() => {
+          const patientInfoSection = form?.querySelector('h3');
+          if (patientInfoSection) {
+            patientInfoSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          }
+        }, 400);
       } else {
         showNotification(data.error, 'error', 'OTP Verification Failed');
         if (verifyOtpBtn) {
@@ -604,7 +615,13 @@ document.addEventListener('DOMContentLoaded', () => {
     const errors = {};
     if (!data.name || data.name.length < 2) errors.name = 'Enter a valid name';
     if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(data.mail)) errors.mail = 'Enter a valid email';
-    if (!/^\d{10}$/.test(data.mobile.replace(/[^0-9]/g, ''))) errors.mobile = 'Enter a valid 10-digit phone';
+    
+    // Enhanced phone validation: Indian mobile numbers
+    const cleanPhone = data.mobile.replace(/[^0-9]/g, '');
+    if (!/^[6-9]\d{9}$/.test(cleanPhone)) {
+      errors.mobile = 'Enter a valid Indian mobile number (starts with 6-9, exactly 10 digits)';
+    }
+    
     if (!data.date) errors.date = 'Select a date';
     if (!data.time_slot) errors.time_slot = 'Select a time slot';
     return errors;
@@ -698,7 +715,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // ============= PHONE FORMATTING =============
   mobileInput?.addEventListener('input', (e) => {
-    e.target.value = e.target.value.replace(/[^0-9]/g, '').slice(0, 10);
+    let value = e.target.value.replace(/[^0-9]/g, '').slice(0, 10);
+    
+    // If user enters a first digit that's not 6-9, show warning
+    if (value.length > 0 && !/^[6-9]/.test(value)) {
+      showNotification('Indian mobile numbers must start with 6, 7, 8, or 9', 'warning', 'Invalid First Digit');
+      e.target.value = '';
+      return;
+    }
+    
+    e.target.value = value;
   });
 
   // ============= SCROLL SPY =============

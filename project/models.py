@@ -479,3 +479,91 @@ class ExcelSync(models.Model):
         self.save()
 
 
+# ============= CHATBOT MODELS =============
+
+class FAQ(models.Model):
+    """FAQ model for chatbot knowledge base"""
+    
+    CATEGORY_CHOICES = [
+        ('insurance', 'Insurance'),
+        ('emergency', 'Emergency Services'),
+        ('booking', 'Booking Process'),
+        ('cancellation', 'Cancellation Policy'),
+        ('payment', 'Payment Methods'),
+        ('general', 'General Information'),
+    ]
+    
+    LANGUAGE_CHOICES = [
+        ('en', 'English'),
+        ('ta', 'Tamil'),
+        ('hi', 'Hindi'),
+    ]
+    
+    question = models.TextField(help_text='FAQ question')
+    answer = models.TextField(help_text='FAQ answer')
+    category = models.CharField(max_length=50, choices=CATEGORY_CHOICES, default='general')
+    language = models.CharField(max_length=5, choices=LANGUAGE_CHOICES, default='en')
+    order = models.IntegerField(default=0, help_text='Display order')
+    is_active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    class Meta:
+        verbose_name = 'FAQ'
+        verbose_name_plural = 'FAQs'
+        ordering = ['language', 'category', 'order']
+        unique_together = ('question', 'language')
+    
+    def __str__(self):
+        return f"[{self.get_language_display()}] {self.question[:50]}..."
+
+
+class BookingTip(models.Model):
+    """Booking tips and guidance for chatbot"""
+    
+    LANGUAGE_CHOICES = [
+        ('en', 'English'),
+        ('ta', 'Tamil'),
+        ('hi', 'Hindi'),
+    ]
+    
+    title = models.CharField(max_length=200, help_text='Title of booking tip')
+    description = models.TextField(help_text='Detailed description/guidance')
+    step_order = models.IntegerField(help_text='Step number in the booking process (1, 2, 3, ...)')
+    language = models.CharField(max_length=5, choices=LANGUAGE_CHOICES, default='en')
+    is_active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    class Meta:
+        verbose_name = 'Booking Tip'
+        verbose_name_plural = 'Booking Tips'
+        ordering = ['language', 'step_order']
+        unique_together = ('step_order', 'language')
+    
+    def __str__(self):
+        return f"[{self.get_language_display()}] Step {self.step_order}: {self.title}"
+
+
+class ChatbotQuery(models.Model):
+    """Track all chatbot queries for analytics and FAQ suggestions"""
+    
+    user_message = models.TextField(help_text='Original question from user')
+    language = models.CharField(max_length=5, default='en')
+    response = models.TextField(help_text='Chatbot response')
+    was_helpful = models.BooleanField(null=True, blank=True, default=None)  # Like/Dislike tracking
+    created_at = models.DateTimeField(auto_now_add=True)
+    
+    class Meta:
+        verbose_name = 'Chatbot Query'
+        verbose_name_plural = 'Chatbot Queries'
+        ordering = ['-created_at']
+        indexes = [
+            models.Index(fields=['language', '-created_at']),
+            models.Index(fields=['created_at']),
+        ]
+    
+    def __str__(self):
+        return f"{self.user_message[:50]}... ({self.language})"
+
+

@@ -21,6 +21,10 @@ urlpatterns = [
     path('api/admin-stats/', views.admin_stats_api, name='admin_stats_api'),
     path('admin-panel/logout/', views.logout_view, name='admin_logout'),
     
+    # Chatbot URLs
+    path('api/chatbot-message/', views.chatbot_message_api, name='chatbot_message'),
+    path('api/faq/', views.get_faq_list, name='get_faq_list'),
+    
     # Feedback URLs
     path('api/submit-feedback/', views.submit_feedback, name='submit_feedback'),
     path('api/get-feedback/', views.get_all_feedback, name='get_all_feedback'),

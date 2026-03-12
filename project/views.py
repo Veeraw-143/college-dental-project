@@ -9,6 +9,8 @@ from django.http import JsonResponse, HttpResponse, HttpResponseForbidden
 from django.core import signing
 import io
 import json
+import requests
+from django.views.decorators.csrf import csrf_exempt
 
 logger = logging.getLogger(__name__)
 
@@ -641,6 +643,183 @@ def logout_view(request):
     
     logout(request)
     return redirect('/admin/login/')
+
+
+# ============= CHATBOT VIEWS =============
+
+def simple_faq_search(user_message, language):
+    """Simple keyword-based FAQ search when Ollama is not available"""
+    keywords = user_message.lower().split()
+    
+    faqs = FAQ.objects.filter(language=language, is_active=True)
+    
+    # Score FAQs based on keyword matches
+    scored_faqs = []
+    for faq in faqs:
+        question_lower = faq.question.lower()
+        score = sum(1 for keyword in keywords if keyword in question_lower)
+        if score > 0:
+            scored_faqs.append((score, faq))
+    
+    if scored_faqs:
+        # Return the best matching FAQ
+        best_faq = sorted(scored_faqs, key=lambda x: x[0], reverse=True)[0][1]
+        return best_faq.answer
+    
+    # If no FAQ match, provide contact info
+    contact_messages = {
+        'en': 'For more information, please call us at +91-9123-456-789 or email pulipandi8158@gmail.com',
+        'ta': 'மேலும் தகவலுக்கு, +91-9123-456-789 என்ற எண்ணில் தொலைபேசி செய்யவும் அல்லது pulipandi8158@gmail.com க்கு மின்னஞ்சல் அனுப்பவும்',
+        'hi': 'अधिक जानकारी के लिए, कृपया +91-9123-456-789 पर कॉल करें या pulipandi8158@gmail.com पर ईमेल करें'
+    }
+    return contact_messages.get(language, contact_messages['en'])
+
+
+@csrf_exempt
+def chatbot_message_api(request):
+    """Handle chatbot messages and communicate with Ollama or use fallback FAQ search"""
+    if request.method != 'POST':
+        return JsonResponse({'error': 'Invalid request method', 'success': False}, status=405)
+    
+    try:
+        # Parse request data
+        try:
+            data = json.loads(request.body)
+        except json.JSONDecodeError:
+            return JsonResponse({'error': 'Invalid JSON', 'success': False}, status=400)
+        
+        user_message = data.get('message', '').strip()
+        language = data.get('language', 'en').lower()  # en, ta, hi
+        
+        if not user_message:
+            return JsonResponse({'error': 'Message is required', 'success': False}, status=400)
+        
+        # Validate language
+        valid_languages = ['en', 'ta', 'hi']
+        if language not in valid_languages:
+            language = 'en'
+        
+        # Get language display name
+        lang_display = {'en': 'English', 'ta': 'Tamil', 'hi': 'Hindi'}[language]
+        
+        # Build knowledge base context from FAQ and BookingTip models
+        context_items = []
+        
+        # Get FAQs for the selected language
+        faqs = FAQ.objects.filter(language=language, is_active=True).order_by('category', 'order')
+        if faqs.exists():
+            context_items.append(f"=== FREQUENTLY ASKED QUESTIONS ({lang_display}) ===\n")
+            for faq in faqs:
+                context_items.append(f"Q: {faq.question}\nA: {faq.answer}\n")
+        
+        # Get booking tips for the selected language
+        tips = BookingTip.objects.filter(language=language, is_active=True).order_by('step_order')
+        if tips.exists():
+            context_items.append(f"\n=== HOW TO BOOK AN APPOINTMENT ===\n")
+            for tip in tips:
+                context_items.append(f"Step {tip.step_order}: {tip.title}\n{tip.description}\n")
+        
+        knowledge_base = "".join(context_items)
+        
+        # Try to use Ollama if available
+        ollama_available = False
+        try:
+            # Build prompt for Ollama
+            prompt = f"""You are a helpful customer service chatbot for Surabi Dental Care clinic. You assist patients with information about our services, appointments, and FAQ.
+
+KNOWLEDGE BASE:
+{knowledge_base}
+
+Current language: {lang_display}
+Patient question: {user_message}
+
+Instructions:
+1. Answer based ONLY on the knowledge base provided above.
+2. Be concise and helpful (keep responses under 150 words).
+3. Use the same language as the patient question.
+4. If you don't know the answer, suggest they call us at +91-9123-456-789 or email pulipandi8158@gmail.com
+5. Always maintain a professional and friendly tone.
+
+Response:"""
+            
+            # Call Ollama API with shorter timeout
+            ollama_response = requests.post(
+                'http://localhost:11434/api/generate',
+                json={
+                    'model': 'mistral',
+                    'prompt': prompt,
+                    'stream': False,
+                    'temperature': 0.7,
+                },
+                timeout=15  # Reduced timeout
+            )
+            
+            if ollama_response.status_code == 200:
+                response_data = ollama_response.json()
+                chatbot_response = response_data.get('response', '').strip()
+                
+                if chatbot_response:
+                    ollama_available = True
+                    return JsonResponse({
+                        'success': True,
+                        'message': chatbot_response,
+                        'language': language
+                    })
+        
+        except (requests.exceptions.ConnectionError, requests.exceptions.Timeout, requests.exceptions.RequestException) as e:
+            logger.warning(f'Ollama service not available: {str(e)}, using fallback FAQ search')
+        
+        # Fallback: Use simple FAQ search
+        if not ollama_available:
+            try:
+                fallback_response = simple_faq_search(user_message, language)
+                return JsonResponse({
+                    'success': True,
+                    'message': fallback_response,
+                    'language': language,
+                    'mode': 'fallback'
+                })
+            except Exception as e:
+                logger.error(f'Fallback FAQ search failed: {str(e)}')
+                
+                # Final fallback: Contact info
+                contact_messages = {
+                    'en': 'Thank you for your question! Please contact us at +91-9123-456-789 or email pulipandi8158@gmail.com for assistance.',
+                    'ta': 'உங்கள் கேள்விக்கு நன்றி! உதவிக்கு +91-9123-456-789 என்ற எண்ணில் தொலைபேசி செய்யவும் அல்லது pulipandi8158@gmail.com க்கு மின்னஞ்சல் அனுப்பவும்.',
+                    'hi': 'आपके सवाल के लिए धन्यवाद! सहायता के लिए कृपया +91-9123-456-789 पर कॉल करें या pulipandi8158@gmail.com पर ईमेल करें।'
+                }
+                return JsonResponse({
+                    'success': True,
+                    'message': contact_messages.get(language, contact_messages['en']),
+                    'language': language,
+                    'mode': 'contact'
+                })
+    
+    except Exception as e:
+        logger.exception(f'Error in chatbot_message_api: {e}')
+        return JsonResponse({
+            'error': 'Internal chatbot error',
+            'message': 'An error occurred. Please contact us directly: +91-9123-456-789',
+            'success': False
+        }, status=500)
+
+
+def get_faq_list(request):
+    """API endpoint to get all FAQs for a specific language"""
+    language = request.GET.get('language', 'en').lower()
+    
+    valid_languages = ['en', 'ta', 'hi']
+    if language not in valid_languages:
+        language = 'en'
+    
+    faqs = FAQ.objects.filter(language=language, is_active=True).values(
+        'id', 'question', 'answer', 'category', 'order'
+    ).order_by('category', 'order')
+    
+    return JsonResponse({
+        'language': language,
+        'faqs': list(faqs)
+    })
 
 
 # ============= FEEDBACK VIEWS =============

@@ -129,7 +129,7 @@ MEDIA_ROOT = MEDIA_DIR
 EMAIL_BACKEND = os.environ.get('EMAIL_BACKEND', 'django.core.mail.backends.smtp.EmailBackend')
 DEFAULT_FROM_EMAIL = os.environ.get('DEFAULT_FROM_EMAIL', 'pulipandi8158@gmail.com')
 
-SITE_URL = os.environ.get('SITE_URL', 'https://w82sqcrg-8000.inc1.devtunnels.ms')   
+SITE_URL = os.environ.get('SITE_URL', 'https://mkdhjj4b-8000.inc1.devtunnels.ms/')   
 
 # Optional Twilio configuration for SMS notifications (leave empty to disable SMS)
 TWILIO_ACCOUNT_SID = os.environ.get('TWILIO_ACCOUNT_SID', '')
@@ -149,9 +149,12 @@ EMAIL_HOST_PASSWORD = 'kovy ruva fjco aiug'
 JAZZMIN_SETTINGS = {
     "site_header": "Surabi Dental Clinic",
     "site_title": "Clinic Admin",
-    "brand": "Surabi Dental",
+    "brand": "Surabi Dental Clinic",
     "welcome_sign": "Welcome to Surabi Dental Clinic Admin",
     "copyright": "Surabi Dental Clinic 2024-2025",
+    "logo": "/media/logo.svg",
+    "logo_title": "Surabi Dental Clinic Admin",
+    "site_icon": "/static/media/logo2.png",
     
     # UI Configuration
     "search_model": ["project.Doctor", "project.Service", "project.Bookings"],
