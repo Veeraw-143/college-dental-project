@@ -110,6 +110,11 @@
       sendMessage(message, currentLanguage, (response) => {
         if (response.success) {
           addMessage(response.message, 'bot');
+          
+          // Check if there's an action/redirect
+          if (response.action === 'redirect' && response.redirect_url) {
+            handleAutoRedirect(response.redirect_url, response.auto_redirect_delay || 3000);
+          }
         } else {
           if (response.error === 'Chatbot service not running') {
             addMessage(TRANSLATIONS[currentLanguage].offline, 'bot');
@@ -233,7 +238,10 @@
             success: true,
             message: data.message || data.response || 'No response',
             language: data.language || language,
-            mode: data.mode || 'ai'
+            mode: data.mode || 'ai',
+            action: data.action,
+            redirect_url: data.redirect_url,
+            auto_redirect_delay: data.auto_redirect_delay
           });
         } else if (data.error) {
           // Error response from server
@@ -272,6 +280,42 @@
           error: error.message,
         });
       });
+  }
+
+  // Handle auto-redirect to different pages
+  function handleAutoRedirect(redirectUrl, delayMs) {
+    const messagesDiv = document.getElementById('chatbot-messages');
+    
+    // Create a countdown message
+    const countdownDiv = document.createElement('div');
+    countdownDiv.className = 'chatbot-message chatbot-bot redirect-countdown';
+    
+    let secondsLeft = Math.ceil(delayMs / 1000);
+    const updateCountdown = () => {
+      countdownDiv.innerHTML = `
+        <div class="chatbot-message-text">
+          <small style="color: #666; opacity: 0.8;">Redirecting to page in ${secondsLeft} second${secondsLeft !== 1 ? 's' : ''}...</small>
+        </div>
+      `;
+    };
+    
+    updateCountdown();
+    messagesDiv.appendChild(countdownDiv);
+    messagesDiv.scrollTop = messagesDiv.scrollHeight;
+    
+    // Update countdown every second
+    const countdownInterval = setInterval(() => {
+      secondsLeft--;
+      if (secondsLeft > 0) {
+        updateCountdown();
+      } else {
+        clearInterval(countdownInterval);
+        // Redirect after delay
+        setTimeout(() => {
+          window.location.href = redirectUrl;
+        }, 500);
+      }
+    }, 1000);
   }
 
   // Get preferred language from browser

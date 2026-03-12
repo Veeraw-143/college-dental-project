@@ -11,6 +11,7 @@ import io
 import json
 import requests
 from django.views.decorators.csrf import csrf_exempt
+from difflib import SequenceMatcher
 
 logger = logging.getLogger(__name__)
 
@@ -647,37 +648,210 @@ def logout_view(request):
 
 # ============= CHATBOT VIEWS =============
 
-def simple_faq_search(user_message, language):
-    """Simple keyword-based FAQ search when Ollama is not available"""
-    keywords = user_message.lower().split()
+class IntentDetector:
+    """Intelligent intent detection for AI Assistant"""
     
+    # Intent types
+    INTENT_BOOK_APPOINTMENT = 'BOOK_APPOINTMENT'
+    INTENT_VIEW_DOCTORS = 'VIEW_DOCTORS'
+    INTENT_VIEW_SERVICES = 'VIEW_SERVICES'
+    INTENT_SUBMIT_FEEDBACK = 'SUBMIT_FEEDBACK'
+    INTENT_CONTACT_US = 'CONTACT_US'
+    INTENT_GENERAL_FAQ = 'GENERAL_FAQ'
+    
+    # Keywords for intent detection
+    INTENT_KEYWORDS = {
+        INTENT_BOOK_APPOINTMENT: [
+            'book', 'appointment', 'slot', 'schedule', 'booking', 'timing', 'time', 
+            'date', 'when can i', 'want to book', 'get appointment', 'reserve', 'check slot'
+        ],
+        INTENT_VIEW_DOCTORS: [
+            'doctor', 'dentist', 'specialist', 'team', 'staff', 'physician', 'who is',
+            'show doctor', 'list doctor', 'available doctor', 'which doctor', 'meet doctor'
+        ],
+        INTENT_VIEW_SERVICES: [
+            'service', 'treatment', 'procedure', 'cost', 'price', 'charge', 'fee',
+            'how much', 'what service', 'available service', 'dental work', 'offer'
+        ],
+        INTENT_SUBMIT_FEEDBACK: [
+            'feedback', 'review', 'rating', 'suggestion', 'compliment', 'complaint',
+            'comment', 'opinion', 'experience', 'suggest'
+        ],
+        INTENT_CONTACT_US: [
+            'contact', 'call', 'phone', 'whatsapp', 'emergency', 'urgent', 'help',
+            'number', 'email', 'address', 'reach', 'get help'
+        ]
+    }
+    
+    # Multilingual responses for each intent
+    INTENT_RESPONSES = {
+        INTENT_BOOK_APPOINTMENT: {
+            'en': "I'll help you book an appointment! 📅 You can schedule your visit by selecting a date, time, and preferred dentist. Our team will confirm your booking within 24 hours. Let's get you scheduled!",
+            'ta': "உங்களுக்கு சந்திப்பு முன்பதிவு செய்ய உதவுவேன்! 📅 நீங்கள் ஒரு தேதி, நேரம் மற்றும் விரும்பிய பல் வைத்தியரைத் தேர்ந்தெடுத்து உங்கள் சந்திப்பைத் திட்டமிடலாம்.",
+            'hi': "मैं आपकी अपॉइंटमेंट बुक करने में मदद करूंगा! 📅 आप एक तारीख, समय और पसंदीदा दंत चिकित्सक का चयन करके अपनी यात्रा का समय तय कर सकते हैं।"
+        },
+        INTENT_VIEW_DOCTORS: {
+            'en': "Great! Let me show you our experienced team of dentists. 👨‍⚕️ Each specialist brings expertise in different areas of dental care. You can view their profiles and choose your preferred doctor for your appointment.",
+            'ta': "멋진! எங்கள் அভிজ్ఞ பல் வைத்தியர்களின் குழுவைக் காட்ட விடுங்கள். 👨‍⚕️ ஒவ்வொரு நிபுணரும் பல் பராமரிப்பின் வெவ்வேறு பகுதிகளில் திறமை கொண்டுவருகிறார்.",
+            'hi': "बढ़िया! मैं आपको हमारे अनुभवी दंत चिकित्सकों की टीम दिखाता हूं। 👨‍⚕️ प्रत्येक विशेषज्ञ दंत चिकित्सा के विभिन्न क्षेत्रों में विशेषज्ञता लाता है।"
+        },
+        INTENT_VIEW_SERVICES: {
+            'en': "Perfect! Let me show you our comprehensive range of dental services. 🦷 We offer everything from general dentistry to specialized treatments. You'll find detailed information about each service including duration and cost.",
+            'ta': "சரி! எங்கள் விரிவான பல் சेவைகளின் வரம்பைக் காட்ட விடுங்கள். 🦷 பொது பல் மருத்துவம் முதல் சிறப்புப் பிரிவு சிகிச்சை வரை எல்லாம் வழங்குகிறோம்.",
+            'hi': "बिल्कुल! मैं आपको हमारी व्यापक दंत सेवाओं की श्रृंखला दिखाता हूं। 🦷 हम सामान्य दंत चिकित्सा से लेकर विशेष उपचार तक सब कुछ प्रदान करते हैं।"
+        },
+        INTENT_SUBMIT_FEEDBACK: {
+            'en': "We'd love to hear from you! 💬 Your feedback helps us improve our services. Please share your experience, and we'll make sure our team receives your valuable input.",
+            'ta': "நீங்கள் கூறுவதை நாங்கள் கேட்க விரும்புகிறோம்! 💬 உங்கள் கருத்து எங்கள் சேவைகளை மேம்படுத்த உதவுகிறது.",
+            'hi': "हम आपसे सुनना पसंद करेंगे! 💬 आपकी प्रतिक्रिया हमारी सेवाओं को बेहतर बनाने में मदद करती है।"
+        },
+        INTENT_CONTACT_US: {
+            'en': "Need to get in touch? 📞 You can reach us at +91-9123-456-789 or email pulipandi8158@gmail.com. Our team is here to help with any questions you have!",
+            'ta': "நம்மைத் தொடர்பு கொள்ள வேண்டுமா? 📞 நீங்கள் +91-9123-456-789 இல் அல்லது pulipandi8158@gmail.com க்கு மின்னஞ்சல் மூலம் தொடர்பு கொள்ளலாம்.",
+            'hi': "हमसे संपर्क करने की जरूरत है? 📞 आप +91-9123-456-789 पर कॉल कर सकते हैं या pulipandi8158@gmail.com पर ईमेल कर सकते हैं।"
+        }
+    }
+    
+    # Redirect URLs for each intent
+    REDIRECT_URLS = {
+        INTENT_BOOK_APPOINTMENT: '/',
+        INTENT_VIEW_DOCTORS: '/doctors',
+        INTENT_VIEW_SERVICES: '/services',
+        INTENT_SUBMIT_FEEDBACK: '/feedback',
+        INTENT_CONTACT_US: '/contact'
+    }
+    
+    @staticmethod
+    def detect_intent(user_message):
+        """Detect user intent from message"""
+        user_message_lower = user_message.lower()
+        
+        # Score each intent based on keyword matches
+        intent_scores = {}
+        
+        for intent, keywords in IntentDetector.INTENT_KEYWORDS.items():
+            score = sum(1 for keyword in keywords if keyword in user_message_lower)
+            if score > 0:
+                intent_scores[intent] = score
+        
+        # Return the highest scoring intent, or GENERAL_FAQ if no match
+        if intent_scores:
+            detected_intent = max(intent_scores, key=intent_scores.get)
+            return detected_intent
+        
+        return IntentDetector.INTENT_GENERAL_FAQ
+    
+    @staticmethod
+    def get_response_for_intent(intent, language='en'):
+        """Get response message for detected intent"""
+        if intent in IntentDetector.INTENT_RESPONSES:
+            responses = IntentDetector.INTENT_RESPONSES[intent]
+            return responses.get(language, responses.get('en'))
+        return None
+    
+    @staticmethod
+    def get_redirect_url(intent):
+        """Get redirect URL for detected intent"""
+        return IntentDetector.REDIRECT_URLS.get(intent, None)
+
+
+def simple_faq_search(user_message, language):
+    """Intelligent FAQ search when Ollama is not available using similarity matching"""
+    from difflib import SequenceMatcher
+    
+    # Default FAQs for all languages
+    default_faqs = {
+        'en': [
+            {'q': 'how do i book an appointment', 'a': 'To book an appointment: 1) Visit our website 2) Select your preferred doctor and date 3) Choose a time slot 4) Enter your details 5) Verify your email with OTP 6) Confirm booking. You will receive a confirmation email.'},
+            {'q': 'what are your clinic hours', 'a': 'Our clinic is open Monday to Saturday, 9:00 AM to 5:00 PM. We are closed on Sundays. Please contact us for holiday hours.'},
+            {'q': 'do you have emergency services', 'a': 'Yes, we handle emergencies. Please call us immediately at +91-9123-456-789 for urgent dental issues.'},
+            {'q': 'what services do you offer', 'a': 'We offer a wide range of dental services including General Dentistry, Orthodontics, Cosmetic Dentistry, Root Canal Treatment, Implants, and more.'},
+            {'q': 'is parking available', 'a': 'Yes, we have dedicated parking space for our patients. Contact us for specific parking details.'},
+            {'q': 'do you accept insurance', 'a': 'Yes, we accept various insurance plans. Please call us to confirm if your insurance is accepted.'},
+            {'q': 'how long does an appointment take', 'a': 'Most appointments take 30-45 minutes depending on the treatment required. Emergency visits may be shorter.'},
+            {'q': 'what should i bring for my first visit', 'a': 'Please bring your ID, insurance card, and any previous dental records if available. Arrive 10 minutes early.'},
+        ],
+        'ta': [
+            {'q': 'நான் எப்படி சந்திப்பை முன்பதிவு செய்யலாம்', 'a': 'சந்திப்பைப் முன்பதிவு செய்ய: 1) எங்கள் இணையதளத்ைக் பார்க்கவும் 2) உங்கள் விரும்பிய வைத்தியர் மற்றும் தேதியைத் தேர்ந்தெடுக்கவும் 3) ஒரு நேர இடத்தைத் தேர்ந்தெடுக்கவும் 4) உங்கள் விவரங்களை உள்ளிடவும் 5) OTP உயர் உங்கள் மின்னஞ்சலை சரிபார்க்கவும் 6) முன்பதிவை உறுதிப்படுத்தவும்.'},
+            {'q': 'உங்கள் சிகிச்சை சாலை நேரம் என்ன', 'a': 'எங்கள் சிகிச்சை சாலை திங்கட்கிழமை முதல் சனிக்கிழமை, காலை 9:00 மணி முதல் மாலை 5:00 மணி வரை திறந்திருக்கும். ஞாயிற்றுக்கிழமை மூடப்பட்டுள்ளது.'},
+            {'q': 'உங்களுக்கு அவசர சேவைகள் உள்ளதா', 'a': 'ஆம், நாங்கள் அவசரகாலங்களைக் கையாளுகிறோம். அவசரமான பல் சிக்கல்களுக்கு +91-9123-456-789 குக் அழைக்கவும்.'},
+            {'q': 'நீங்கள் என்ன சேவைகளை வழங்குகிறீர்கள்', 'a': 'நாங்கள் பொது பல் சிகிச்சை, பற்களை வரிசைப்படுத்துதல், அழகு பல் சிகிச்சை, ரூட் கால் சிகிச்சை, பொருத்துதல் மற்றும் பல வழங்குகிறோம்.'},
+        ],
+        'hi': [
+            {'q': 'मैं अपॉइंटमेंट कैसे बुक करूं', 'a': 'अपॉइंटमेंट बुक करने के लिए: 1) हमारी वेबसाइट पर जाएं 2) अपने पसंदीदा डॉक्टर और तारीख चुनें 3) एक समय स्लॉट चुनें 4) अपना विवरण दर्ज करें 5) OTP से अपना ईमेल सत्यापित करें 6) बुकिंग की पुष्टि करें।'},
+            {'q': 'आपके क्लिनिक के घंटे क्या हैं', 'a': 'हमारा क्लिनिक सोमवार से शनिवार, सुबह 9:00 से शाम 5:00 तक खुला है। हम रविवार को बंद हैं।'},
+            {'q': 'क्या आपके पास आपातकालीन सेवाएं हैं', 'a': 'हां, हम आपात स्थिति को संभालते हैं। तत्काल दंत समस्याओं के लिए +91-9123-456-789 पर कॉल करें।'},
+            {'q': 'आप कौन सी सेवाएं प्रदान करते हैं', 'a': 'हम सामान्य दंत चिकित्सा, ऑर्थोडॉन्टिक्स, कॉस्मेटिक दंत चिकित्सा, रूट कैनाल उपचार, इम्प्लांट और अधिक प्रदान करते हैं।'},
+        ]
+    }
+    
+    user_message_lower = user_message.lower()
     faqs = FAQ.objects.filter(language=language, is_active=True)
     
-    # Score FAQs based on keyword matches
-    scored_faqs = []
+    best_match = None
+    best_score = 0.3  # Minimum threshold for match
+    
+    # First try to match with database FAQs
     for faq in faqs:
         question_lower = faq.question.lower()
-        score = sum(1 for keyword in keywords if keyword in question_lower)
-        if score > 0:
-            scored_faqs.append((score, faq))
+        similarity = SequenceMatcher(None, user_message_lower, question_lower).ratio()
+        
+        if similarity > best_score:
+            best_score = similarity
+            best_match = faq.answer
     
-    if scored_faqs:
-        # Return the best matching FAQ
-        best_faq = sorted(scored_faqs, key=lambda x: x[0], reverse=True)[0][1]
-        return best_faq.answer
+    # If database FAQs don't match well, try default FAQs
+    if best_score < 0.5 and language in default_faqs:
+        for faq_pair in default_faqs[language]:
+            similarity = SequenceMatcher(None, user_message_lower, faq_pair['q']).ratio()
+            
+            if similarity > best_score:
+                best_score = similarity
+                best_match = faq_pair['a']
     
-    # If no FAQ match, provide contact info
+    # If we found a good match, return it
+    if best_match:
+        return best_match
+    
+    # Fallback: Provide helpful response based on common keywords
+    keywords_responses = {
+        'en': {
+            'book|appointment|slot|timing|time': 'To book an appointment, visit our website and follow the booking form. Select your preferred doctor, date, and time slot. You\'ll need to verify your email with an OTP to complete the booking.',
+            'doctor|specialist|dentist': 'We have experienced dentists specializing in various dental treatments. Visit our Doctors page to view our team or contact us at +91-9123-456-789.',
+            'service|treatment|dental': 'We offer comprehensive dental services. Check our Services page or call us to learn more about specific treatments available.',
+            'cost|price|charge|fee': 'For pricing information, please call us at +91-9123-456-789 or email pulipandi8158@gmail.com.',
+            'hour|open|close|timing': 'We are open Monday to Saturday, 9 AM to 5 PM. Closed on Sundays. Call us for any queries.',
+        },
+        'ta': {
+            'book|appointment|slot': 'சந்திப்பைப் முன்பதிவு செய்ய, எங்கள் இணையதளத்ைக் பார்க்கவும் மற்றும் முன்பதிவு படிவத்ைப் பூர்த்திசெய்யவும்.',
+            'doctor|specialist': 'அভিজ்ञ பல் வைத்தியர் நம்மிடம் உள்ளனர். +91-9123-456-789 ல் தொலைபேசி செய்யவும்.',
+            'service|treatment': 'விस్తృత பல் சேवा प्रदान करते हैं। আরও जानकारी के लिए আমাদের సేवา पাতा देखें।',
+        },
+        'hi': {
+            'book|appointment|slot': 'अपॉइंटमेंट बुक करने के लिए हमारी वेबसाइट पर जाएं और फॉर्म भरें।',
+            'doctor|specialist': 'हमारे पास अनुभवी डॉक्टर हैं। अधिक जानकारी के लिए +91-9123-456-789 पर कॉल करें।',
+            'service|treatment': 'हम व्यापक दंत सेवाएं प्रदान करते हैं।',
+        }
+    }
+    
+    # Check keywords in user message
+    if language in keywords_responses:
+        for pattern, response in keywords_responses[language].items():
+            if any(keyword in user_message_lower for keyword in pattern.split('|')):
+                return response
+    
+    # Final fallback: Contact info
     contact_messages = {
-        'en': 'For more information, please call us at +91-9123-456-789 or email pulipandi8158@gmail.com',
-        'ta': 'மேலும் தகவலுக்கு, +91-9123-456-789 என்ற எண்ணில் தொலைபேசி செய்யவும் அல்லது pulipandi8158@gmail.com க்கு மின்னஞ்சல் அனுப்பவும்',
-        'hi': 'अधिक जानकारी के लिए, कृपया +91-9123-456-789 पर कॉल करें या pulipandi8158@gmail.com पर ईमेल करें'
+        'en': 'Thank you for your question! I\'ll be happy to help. For more detailed information, please contact us at +91-9123-456-789 or email pulipandi8158@gmail.com',
+        'ta': 'உங்கள் கேள்விக்கு நன்றி! மேலும் தகவலுக்கு, +91-9123-456-789 என்ற எண்ணில் தொலைபேசி செய்யவும் அல்லது pulipandi8158@gmail.com க்கு மின்னஞ்சல் அனுப்பவும்',
+        'hi': 'आपके सवाल के लिए धन्यवाद! अधिक जानकारी के लिए कृपया +91-9123-456-789 पर कॉल करें या pulipandi8158@gmail.com पर ईमेल करें।'
     }
     return contact_messages.get(language, contact_messages['en'])
 
 
 @csrf_exempt
 def chatbot_message_api(request):
-    """Handle chatbot messages and communicate with Ollama or use fallback FAQ search"""
+    """Enhanced AI Assistant with Intent Detection and Auto-Redirect"""
     if request.method != 'POST':
         return JsonResponse({'error': 'Invalid request method', 'success': False}, status=405)
     
@@ -699,6 +873,28 @@ def chatbot_message_api(request):
         if language not in valid_languages:
             language = 'en'
         
+        # ========== PHASE 1: INTENT DETECTION ==========
+        detected_intent = IntentDetector.detect_intent(user_message)
+        
+        # ========== PHASE 2: ACTION-BASED INTENTS (with Redirect) ==========
+        if detected_intent != IntentDetector.INTENT_GENERAL_FAQ:
+            # Get response message for this intent
+            intent_message = IntentDetector.get_response_for_intent(detected_intent, language)
+            redirect_url = IntentDetector.get_redirect_url(detected_intent)
+            
+            if intent_message and redirect_url:
+                return JsonResponse({
+                    'success': True,
+                    'message': intent_message,
+                    'language': language,
+                    'intent': detected_intent,
+                    'action': 'redirect',
+                    'redirect_url': redirect_url,
+                    'auto_redirect_delay': 3000,  # 3 seconds
+                    'mode': 'action'
+                })
+        
+        # ========== PHASE 3: GENERAL FAQ (no redirect) ==========
         # Get language display name
         lang_display = {'en': 'English', 'ta': 'Tamil', 'hi': 'Hindi'}[language]
         
@@ -763,13 +959,16 @@ Response:"""
                     return JsonResponse({
                         'success': True,
                         'message': chatbot_response,
-                        'language': language
+                        'language': language,
+                        'intent': IntentDetector.INTENT_GENERAL_FAQ,
+                        'action': None,
+                        'mode': 'ollama'
                     })
         
         except (requests.exceptions.ConnectionError, requests.exceptions.Timeout, requests.exceptions.RequestException) as e:
             logger.warning(f'Ollama service not available: {str(e)}, using fallback FAQ search')
         
-        # Fallback: Use simple FAQ search
+        # ========== PHASE 4: INTELLIGENT FALLBACK FAQ SEARCH ==========
         if not ollama_available:
             try:
                 fallback_response = simple_faq_search(user_message, language)
@@ -777,7 +976,9 @@ Response:"""
                     'success': True,
                     'message': fallback_response,
                     'language': language,
-                    'mode': 'fallback'
+                    'intent': IntentDetector.INTENT_GENERAL_FAQ,
+                    'action': None,
+                    'mode': 'fallback_faq'
                 })
             except Exception as e:
                 logger.error(f'Fallback FAQ search failed: {str(e)}')
@@ -792,7 +993,9 @@ Response:"""
                     'success': True,
                     'message': contact_messages.get(language, contact_messages['en']),
                     'language': language,
-                    'mode': 'contact'
+                    'intent': IntentDetector.INTENT_GENERAL_FAQ,
+                    'action': None,
+                    'mode': 'contact_fallback'
                 })
     
     except Exception as e:
