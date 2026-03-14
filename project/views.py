@@ -714,7 +714,7 @@ class IntentDetector:
     
     # Redirect URLs for each intent
     REDIRECT_URLS = {
-        INTENT_BOOK_APPOINTMENT: '/',
+        INTENT_BOOK_APPOINTMENT: '/appointments',
         INTENT_VIEW_DOCTORS: '/doctors',
         INTENT_VIEW_SERVICES: '/services',
         INTENT_SUBMIT_FEEDBACK: '/feedback',
@@ -851,7 +851,7 @@ def simple_faq_search(user_message, language):
 
 @csrf_exempt
 def chatbot_message_api(request):
-    """Enhanced AI Assistant with Intent Detection and Auto-Redirect"""
+    """Enhanced AI Assistant with Full Mistral AI Potential"""
     if request.method != 'POST':
         return JsonResponse({'error': 'Invalid request method', 'success': False}, status=405)
     
@@ -873,138 +873,311 @@ def chatbot_message_api(request):
         if language not in valid_languages:
             language = 'en'
         
-        # ========== PHASE 1: INTENT DETECTION ==========
-        detected_intent = IntentDetector.detect_intent(user_message)
+        # ========== BUILD COMPREHENSIVE KNOWLEDGE BASE ==========
+        knowledge_base = _build_comprehensive_knowledge_base(language)
         
-        # ========== PHASE 2: ACTION-BASED INTENTS (with Redirect) ==========
-        if detected_intent != IntentDetector.INTENT_GENERAL_FAQ:
-            # Get response message for this intent
-            intent_message = IntentDetector.get_response_for_intent(detected_intent, language)
-            redirect_url = IntentDetector.get_redirect_url(detected_intent)
-            
-            if intent_message and redirect_url:
-                return JsonResponse({
-                    'success': True,
-                    'message': intent_message,
-                    'language': language,
-                    'intent': detected_intent,
-                    'action': 'redirect',
-                    'redirect_url': redirect_url,
-                    'auto_redirect_delay': 3000,  # 3 seconds
-                    'mode': 'action'
-                })
+        # ========== BUILD ADVANCED PROMPT FOR MISTRAL ==========
+        prompt = _build_advanced_prompt(user_message, language, knowledge_base)
         
-        # ========== PHASE 3: GENERAL FAQ (no redirect) ==========
-        # Get language display name
-        lang_display = {'en': 'English', 'ta': 'Tamil', 'hi': 'Hindi'}[language]
+        # ========== CALL OLLAMA WITH RETRY LOGIC ==========
+        chatbot_response = None
+        max_retries = 2
+        retry_count = 0
         
-        # Build knowledge base context from FAQ and BookingTip models
-        context_items = []
+        while retry_count <= max_retries and chatbot_response is None:
+            try:
+                ollama_response = requests.post(
+                    'http://localhost:11434/api/generate',
+                    json={
+                        'model': 'mistral',
+                        'prompt': prompt,
+                        'stream': False,
+                        'temperature': 0.8,  # Increased for more varied responses
+                        'top_p': 0.95,
+                        'top_k': 40,
+                    },
+                    timeout=20
+                )
+                
+                if ollama_response.status_code == 200:
+                    response_data = ollama_response.json()
+                    response_text = response_data.get('response', '').strip()
+                    
+                    # Validate response is not empty and not a repetition marker
+                    if response_text and len(response_text) > 20:
+                        chatbot_response = _clean_response(response_text)
+                        logger.info(f'Mistral response generated successfully (length: {len(chatbot_response)})')
+                        break
+                
+                retry_count += 1
+                
+            except (requests.exceptions.ConnectionError, requests.exceptions.Timeout) as e:
+                retry_count += 1
+                logger.warning(f'Ollama API attempt {retry_count} failed: {str(e)}')
+                if retry_count <= max_retries:
+                    # Wait a bit before retry
+                    import time
+                    time.sleep(0.5)
         
-        # Get FAQs for the selected language
-        faqs = FAQ.objects.filter(language=language, is_active=True).order_by('category', 'order')
+        # ========== IF MISTRAL WORKS, RETURN RESPONSE ==========
+        if chatbot_response:
+            return JsonResponse({
+                'success': True,
+                'message': chatbot_response,
+                'language': language,
+                'mode': 'mistral_full_potential'
+            })
+        
+        # ========== FALLBACK: IF MISTRAL FAILS, USE INTELLIGENT FAQ SEARCH ==========
+        logger.warning('Mistral AI unavailable, falling back to intelligent FAQ search')
+        fallback_response = _intelligent_fallback_response(user_message, language, knowledge_base)
+        
+        return JsonResponse({
+            'success': True,
+            'message': fallback_response,
+            'language': language,
+            'mode': 'intelligent_fallback'
+        })
+    
+    except Exception as e:
+        logger.exception(f'Error in chatbot_message_api: {e}')
+        error_messages = {
+            'en': 'Thank you for your question! Please contact us at +91-87783-92763 or email pulipandi8158@gmail.com for assistance.',
+            'ta': 'உங்கள் கேள்விக்கு நன்றி! உதவிக்கு +91-87783-92763 என்ற எண்ணில் தொலைபேசி செய்யவும் அல்லது pulipandi8158@gmail.com க்கு மின்னஞ்சல் அனுப்பவும்.',
+            'hi': 'आपके सवाल के लिए धन्यवाद! सहायता के लिए कृपया +91-87783-92763 पर कॉल करें या pulipandi8158@gmail.com पर ईमेल करें।'
+        }
+        return JsonResponse({
+            'success': True,
+            'message': error_messages.get(language, error_messages['en']),
+            'language': language,
+            'mode': 'error_fallback'
+        }, status=200)
+
+
+def _build_comprehensive_knowledge_base(language):
+    """Build comprehensive knowledge base from clinic data"""
+    kb_sections = []
+    
+    # Clinic Info
+    clinic_info = {
+        'en': {
+            'name': 'Surabi Dental Care',
+            'phone': '+91-87783-92763',
+            'email': 'pulipandi8158@gmail.com',
+            'hours': 'Monday to Saturday: 9:00 AM - 5:00 PM',
+            'closed': 'Closed on Sundays',
+            'services_intro': 'We offer comprehensive dental services',
+        },
+        'ta': {
+            'name': 'சுரபி பல் பராமரிப்பு',
+            'phone': '+91-87783-92763',
+            'email': 'pulipandi8158@gmail.com',
+            'hours': 'திங்கட்கிழமை முதல் சனிக்கிழமை: காலை 9:00 - மாலை 5:00',
+            'closed': 'ஞாயிற்றுக்கிழமை மூடப்பட்டிருக்கும்',
+            'services_intro': 'நாங்கள் விரிவான பல் சேவைகளை வழங்குகிறோம்',
+        },
+        'hi': {
+            'name': 'सुरभी डेंटल केयर',
+            'phone': '+91-87783-92763',
+            'email': 'pulipandi8158@gmail.com',
+            'hours': 'सोमवार से शनिवार: 9:00 AM - 5:00 PM',
+            'closed': 'रविवार को बंद',
+            'services_intro': 'हम व्यापक दंत सेवाएं प्रदान करते हैं',
+        }
+    }
+    
+    info = clinic_info.get(language, clinic_info['en'])
+    kb_sections.append(f"CLINIC INFORMATION:\nName: {info['name']}\nPhone: {info['phone']}\nEmail: {info['email']}\nHours: {info['hours']}\n{info['closed']}\n")
+    
+    # Doctors Information
+    try:
+        doctors = Doctor.objects.filter(is_active=True)
+        if doctors.exists():
+            kb_sections.append("\nOUR DOCTORS:\n")
+            for doc in doctors:
+                exp_text = {'en': 'years', 'ta': 'ஆண்டுகள்', 'hi': 'साल'}.get(language, 'years')
+                kb_sections.append(f"- {doc.name}: {doc.specialization} ({doc.experience_years} {exp_text} experience)\n")
+    except Exception as e:
+        logger.error(f'Error loading doctors: {e}')
+    
+    # Services Information
+    try:
+        services = Service.objects.filter(is_active=True)
+        if services.exists():
+            kb_sections.append(f"\n{info['services_intro']}:\n")
+            for svc in services:
+                duration_text = {'en': 'minutes', 'ta': 'நிமிடங்கள்', 'hi': 'मिनट'}.get(language, 'minutes')
+                kb_sections.append(f"- {svc.name}: ₹{svc.cost} ({svc.duration_minutes} {duration_text})\n  {svc.description[:100]}...\n")
+    except Exception as e:
+        logger.error(f'Error loading services: {e}')
+    
+    # FAQs if available
+    try:
+        faqs = FAQ.objects.filter(language=language, is_active=True).order_by('category')[:10]
         if faqs.exists():
-            context_items.append(f"=== FREQUENTLY ASKED QUESTIONS ({lang_display}) ===\n")
+            faq_label = {'en': 'FREQUENTLY ASKED QUESTIONS', 'ta': 'பொதுவான கேள்விகள்', 'hi': 'अक्सर पूछे जाने वाले प्रश्न'}.get(language, 'FREQUENTLY ASKED QUESTIONS')
+            kb_sections.append(f"\n{faq_label}:\n")
             for faq in faqs:
-                context_items.append(f"Q: {faq.question}\nA: {faq.answer}\n")
-        
-        # Get booking tips for the selected language
-        tips = BookingTip.objects.filter(language=language, is_active=True).order_by('step_order')
-        if tips.exists():
-            context_items.append(f"\n=== HOW TO BOOK AN APPOINTMENT ===\n")
-            for tip in tips:
-                context_items.append(f"Step {tip.step_order}: {tip.title}\n{tip.description}\n")
-        
-        knowledge_base = "".join(context_items)
-        
-        # Try to use Ollama if available
-        ollama_available = False
-        try:
-            # Build prompt for Ollama
-            prompt = f"""You are a helpful customer service chatbot for Surabi Dental Care clinic. You assist patients with information about our services, appointments, and FAQ.
+                kb_sections.append(f"Q: {faq.question}\nA: {faq.answer}\n")
+    except Exception as e:
+        logger.error(f'Error loading FAQs: {e}')
+    
+    return "".join(kb_sections) if kb_sections else _get_default_knowledge_base(language)
+
+
+def _build_advanced_prompt(user_message, language, knowledge_base):
+    """Build an advanced prompt that leverages Mistral's full potential"""
+    
+    language_prompts = {
+        'en': {
+            'role': "You are Surabi Dental Care's intelligent assistant. You help patients with information about our dental clinic.",
+            'instruction1': 'Use the provided knowledge base to answer questions accurately.',
+            'instruction2': 'Provide helpful, detailed, and friendly responses.',
+            'instruction3': 'If asked about something not in the knowledge base, acknowledge it and provide general dental guidance.',
+            'instruction4': 'Keep responses concise but informative (150-250 words).',
+            'instruction5': 'Always include contact info if the patient might need personalized help.',
+            'instruction6': 'Use professional medical language while remaining approachable.',
+            'patient_question': 'Patient Question',
+        },
+        'ta': {
+            'role': "நீங்கள் சுரபி பல் பராமரிப்பு கிளினிக்கின் புத்திசாலி সहায்क. நோயியளுக்கு நம் பல் கிளினிக்கு பற்றிய தகவல்களை தெரிய உதவுவது உங்கள் பணி.",
+            'instruction1': 'பெறப்பட்ட தகவல் தளத்தைப் பயன்படுத்தி கேள்விகளுக்கு சரியாக பதிலளிக்கவும்.',
+            'instruction2': 'உபயோகமான, விரிவான மற்றும் நட்பு பதिलை வழங்கவும்.',
+            'instruction3': 'தகவல் தளத்தில் இல்லாத கேள்விக்கு பொதுவான பல் ஆலோசனை வழங்கவும்.',
+            'instruction4': 'பதிலை சுருக்கமாக ஆனால் தகவல்புறமாக வைக்கவும் (150-250 வார்த்தைகள்).',
+            'instruction5': 'நோயியளுக்கு தனிப்பட்ட உதவி தேவைப்பட்டால் தொடர்பு தகவலை சேர்க்கவும்.',
+            'instruction6': 'தமிழ் மொழிில் வழங்கவும், நட்பாக கொடுக்கவும்.',
+            'patient_question': 'நோயியளின் கேள்வி',
+        },
+        'hi': {
+            'role': "आप सुरभी डेंटल केयर के बुद्धिमान सहायक हैं। आप रोगियों को हमारी दंत क्लिनिक के बारे में जानकारी देने में मदद करते हैं।",
+            'instruction1': 'प्रदान की गई ज्ञान आधार का उपयोग करके प्रश्नों का सटीक उत्तर दें।',
+            'instruction2': 'सहायक, विस्तृत और अनुकूल प्रतिक्रियाएं प्रदान करें।',
+            'instruction3': 'यदि ज्ञान आधार में कुछ नहीं है, तो सामान्य दंत चिकित्सा मार्गदर्शन प्रदान करें।',
+            'instruction4': 'प्रतिक्रिया को संक्षिप्त लेकिन सूचनात्मक रखें (150-250 शब्द)।',
+            'instruction5': 'यदि रोगी को व्यक्तिगत सहायता की आवश्यकता हो तो संपर्क जानकारी शामिल करें।',
+            'instruction6': 'हिंदी भाषा में प्रतिक्रिया दें, दोस्ताना और आकर्षक रहें।',
+            'patient_question': 'रोगी का प्रश्न',
+        }
+    }
+    
+    lang_prompt = language_prompts.get(language, language_prompts['en'])
+    
+    prompt = f"""{lang_prompt['role']}
 
 KNOWLEDGE BASE:
 {knowledge_base}
 
-Current language: {lang_display}
-Patient question: {user_message}
+INSTRUCTIONS:
+1. {lang_prompt['instruction1']}
+2. {lang_prompt['instruction2']}
+3. {lang_prompt['instruction3']}
+4. {lang_prompt['instruction4']}
+5. {lang_prompt['instruction5']}
+6. {lang_prompt['instruction6']}
 
-Instructions:
-1. Answer based ONLY on the knowledge base provided above.
-2. Be concise and helpful (keep responses under 150 words).
-3. Use the same language as the patient question.
-4. If you don't know the answer, suggest they call us at +91-9123-456-789 or email pulipandi8158@gmail.com
-5. Always maintain a professional and friendly tone.
+{lang_prompt['patient_question']}: {user_message}
 
-Response:"""
-            
-            # Call Ollama API with shorter timeout
-            ollama_response = requests.post(
-                'http://localhost:11434/api/generate',
-                json={
-                    'model': 'mistral',
-                    'prompt': prompt,
-                    'stream': False,
-                    'temperature': 0.7,
-                },
-                timeout=15  # Reduced timeout
-            )
-            
-            if ollama_response.status_code == 200:
-                response_data = ollama_response.json()
-                chatbot_response = response_data.get('response', '').strip()
-                
-                if chatbot_response:
-                    ollama_available = True
-                    return JsonResponse({
-                        'success': True,
-                        'message': chatbot_response,
-                        'language': language,
-                        'intent': IntentDetector.INTENT_GENERAL_FAQ,
-                        'action': None,
-                        'mode': 'ollama'
-                    })
-        
-        except (requests.exceptions.ConnectionError, requests.exceptions.Timeout, requests.exceptions.RequestException) as e:
-            logger.warning(f'Ollama service not available: {str(e)}, using fallback FAQ search')
-        
-        # ========== PHASE 4: INTELLIGENT FALLBACK FAQ SEARCH ==========
-        if not ollama_available:
-            try:
-                fallback_response = simple_faq_search(user_message, language)
-                return JsonResponse({
-                    'success': True,
-                    'message': fallback_response,
-                    'language': language,
-                    'intent': IntentDetector.INTENT_GENERAL_FAQ,
-                    'action': None,
-                    'mode': 'fallback_faq'
-                })
-            except Exception as e:
-                logger.error(f'Fallback FAQ search failed: {str(e)}')
-                
-                # Final fallback: Contact info
-                contact_messages = {
-                    'en': 'Thank you for your question! Please contact us at +91-9123-456-789 or email pulipandi8158@gmail.com for assistance.',
-                    'ta': 'உங்கள் கேள்விக்கு நன்றி! உதவிக்கு +91-9123-456-789 என்ற எண்ணில் தொலைபேசி செய்யவும் அல்லது pulipandi8158@gmail.com க்கு மின்னஞ்சல் அனுப்பவும்.',
-                    'hi': 'आपके सवाल के लिए धन्यवाद! सहायता के लिए कृपया +91-9123-456-789 पर कॉल करें या pulipandi8158@gmail.com पर ईमेल करें।'
-                }
-                return JsonResponse({
-                    'success': True,
-                    'message': contact_messages.get(language, contact_messages['en']),
-                    'language': language,
-                    'intent': IntentDetector.INTENT_GENERAL_FAQ,
-                    'action': None,
-                    'mode': 'contact_fallback'
-                })
+RESPONSE:"""
     
+    return prompt
+
+
+def _clean_response(response_text):
+    """Clean and validate response from Mistral"""
+    # Remove common filler phrases
+    response = response_text.strip()
+    
+    # Remove model thinking/prefix if present
+    if response.startswith('Response:'):
+        response = response[9:].strip()
+    if response.startswith('RESPONSE:'):
+        response = response[9:].strip()
+    
+    # Ensure minimum length
+    if len(response) < 15:
+        return None
+    
+    return response
+
+
+def _intelligent_fallback_response(user_message, language, knowledge_base):
+    """Intelligent fallback when Mistral is unavailable"""
+    # Use similarity matching to find relevant information
+    try:
+        fallback_response = simple_faq_search(user_message, language)
+        return fallback_response
     except Exception as e:
-        logger.exception(f'Error in chatbot_message_api: {e}')
-        return JsonResponse({
-            'error': 'Internal chatbot error',
-            'message': 'An error occurred. Please contact us directly: +91-9123-456-789',
-            'success': False
-        }, status=500)
+        logger.error(f'Fallback search failed: {e}')
+        
+        # Last resort contact message
+        contact_messages = {
+            'en': 'Thank you for your question! Our team will be happy to help you. Please contact us at +91-87783-92763 or email pulipandi8158@gmail.com.',
+            'ta': 'உங்கள் கேள்விக்கு நன்றி! எங்கள் குழு உங்களுக்கு உதவ மகிழ்ச்சியடைவார். +91-87783-92763 ல் தொலைபேசி செய்யவும் அல்லது pulipandi8158@gmail.com க்கு மின்னஞ்சல் அனுப்பவும்.',
+            'hi': 'आपके सवाल के लिए धन्यवाद! हमारी टीम आपकी मदद करने को तैयार है। कृपया +91-87783-92763 पर कॉल करें या pulipandi8158@gmail.com पर ईमेल करें।'
+        }
+        return contact_messages.get(language, contact_messages['en'])
+
+
+def _get_default_knowledge_base(language):
+    """Provide default knowledge base if database fails"""
+    default_bases = {
+        'en': """CLINIC INFORMATION:
+Name: Surabi Dental Care
+Phone: +91-87783-92763
+Email: pulipandi8158@gmail.com
+Hours: Monday to Saturday: 9:00 AM - 5:00 PM
+Closed on Sundays
+
+SERVICES:
+- General Dentistry
+- Root Canal Treatment
+- Cosmetic Dentistry
+- Teeth Whitening
+- Orthodontics
+- Dental Implants
+
+CONTACT US:
+Call: +91-87783-92763
+Email: pulipandi8158@gmail.com""",
+        'ta': """கிளினிக் தகவல்:
+பெயர்: சுரபி பல் பராமரிப்பு
+தொலைபேசி: +91-87783-92763
+மின்னஞ்சல்: pulipandi8158@gmail.com
+நேரம்: திங்கட்கிழமை முதல் சனிக்கிழமை: 9:00 AM - 5:00 PM
+ஞாயிற்றுக்கிழமை மூடப்பட்டுள்ளது
+
+சேவைகள்:
+- பொதுவான பல் சிகிச்சை
+- ரூட் கால் சிகிச்சை
+- அழகு பல் சிகிச்சை
+- பற்களை வெளுப்பது
+- பற்களை வரிசைப்படுத்துதல்
+- பல் பொருத்து
+
+தொடர்பு:
+அழைக்க: +91-87783-92763
+மின்னஞ்சல்: pulipandi8158@gmail.com""",
+        'hi': """क्लिनिक की जानकारी:
+नाम: सुरभी डेंटल केयर
+फोन: +91-87783-92763
+ईमेल: pulipandi8158@gmail.com
+समय: सोमवार से शनिवार: 9:00 AM - 5:00 PM
+रविवार को बंद
+
+सेवाएं:
+- सामान्य दंत चिकित्सा
+- रूट कैनाल ट्रीटमेंट
+- कॉस्मेटिक दंत चिकित्सा
+- दांतों की सफेदी
+- ऑर्थोडॉन्टिक्स
+- दंत प्रत्यारोपण
+
+हमसे संपर्क करें:
+कॉल करें: +91-87783-92763
+ईमेल करें: pulipandi8158@gmail.com"""
+    }
+    return default_bases.get(language, default_bases['en'])
 
 
 def get_faq_list(request):
