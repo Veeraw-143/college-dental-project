@@ -2,7 +2,7 @@
 URL configuration for project app.
 """
 from django.urls import path
-from . import views
+from . import views, async_views
 
 urlpatterns = [
     path('', views.home, name='home'),
@@ -28,4 +28,12 @@ urlpatterns = [
     # Feedback URLs
     path('api/submit-feedback/', views.submit_feedback, name='submit_feedback'),
     path('api/get-feedback/', views.get_all_feedback, name='get_all_feedback'),
+    
+    # Real-time & Async Updates URLs
+    path('api/bookings/updates/', async_views.get_booking_updates, name='booking_updates'),
+    path('api/otp/status/', async_views.get_otp_status, name='otp_status'),
+    path('api/dashboard/stats/', async_views.get_dashboard_stats, name='dashboard_stats'),
+    path('api/booking/<int:booking_id>/details/', async_views.get_booking_detail, name='booking_detail'),
+    path('api/otp/<str:email>/status/', async_views.get_otp_verification_status, name='otp_verification_status'),
+    path('api/subscribe/updates/', async_views.subscribe_to_updates, name='subscribe_updates'),
 ]

@@ -1,64 +1,17 @@
 // Enhanced script: theme toggle, form validation, OTP, modal, confetti and UI interactions
 
 document.addEventListener('DOMContentLoaded', () => {
-  // ============= NOTIFICATION SYSTEM =============
-  // Create notification container if it doesn't exist
-  if (!document.getElementById('notification-container')) {
-    const container = document.createElement('div');
-    container.id = 'notification-container';
-    container.className = 'notification-container';
-    document.body.appendChild(container);
-  }
-
-  function showNotification(message, type = 'info', title = '', duration = 5000) {
-    const container = document.getElementById('notification-container');
-    const notification = document.createElement('div');
-    notification.className = `notification ${type}`;
-
-    const icons = {
-      success: '✓',
-      error: '✕',
-      warning: '⚠',
-      info: 'ℹ'
-    };
-
-    const titles = {
-      success: title || 'Success',
-      error: title || 'Error',
-      warning: title || 'Warning',
-      info: title || 'Info'
-    };
-
-    notification.innerHTML = `
-      <div class="notification-icon">${icons[type] || icons.info}</div>
-      <div class="notification-content">
-        <div class="notification-title">${titles[type]}</div>
-        <div class="notification-message">${message}</div>
-      </div>
-      <button class="notification-close" aria-label="Close">&times;</button>
-    `;
-
-    const closeBtn = notification.querySelector('.notification-close');
-    closeBtn.addEventListener('click', () => {
-      notification.style.animation = 'slideOutRight 0.3s ease forwards';
-      setTimeout(() => notification.remove(), 300);
-    });
-
-    container.appendChild(notification);
-
-    if (duration > 0) {
-      setTimeout(() => {
-        if (notification.parentElement) {
-          notification.style.animation = 'slideOutRight 0.3s ease forwards';
-          setTimeout(() => notification.remove(), 300);
-        }
-      }, duration);
+  // Wait for notification system to initialize
+  function waitForNotify(callback) {
+    if (window.Notify) {
+      callback();
+    } else {
+      setTimeout(() => waitForNotify(callback), 100);
     }
-
-    return notification;
   }
 
-  // ============= ELEMENTS =============
+  waitForNotify(() => {
+    // ============= ELEMENTS =============
   const themeToggle = document.getElementById('theme-toggle');
   const form = document.getElementById('appointment-form');
   const modal = document.getElementById('modal');
@@ -260,7 +213,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const email = emailOtpInput.value.trim();
       
       if (!email || !email.includes('@')) {
-        showNotification('Please enter a valid email address', 'warning', 'Invalid Email');
+        Notify.warning('Please enter a valid email address', 'Invalid Email');
         return;
       }
 
@@ -278,18 +231,18 @@ document.addEventListener('DOMContentLoaded', () => {
       .then(r => r.json())
       .then(data => {
         if (data.success) {
-          showNotification(data.message + ' (Check your email for the OTP code)', 'success', 'OTP Sent');
+          Notify.success(data.message + ' (Check your email for the OTP code)', 'OTP Sent');
           if (otpInputSection) otpInputSection.style.display = 'block';
           sendOtpBtn.textContent = 'OTP Sent ✓';
         } else {
-          showNotification(data.error, 'error', 'Failed to Send OTP');
+          Notify.error(data.error, 'Failed to Send OTP');
           sendOtpBtn.textContent = 'Send OTP';
           sendOtpBtn.disabled = false;
         }
       })
       .catch(err => {
         console.error('Error:', err);
-        showNotification('Failed to send OTP. Please try again.', 'error', 'Connection Error');
+        Notify.error('Failed to send OTP. Please try again.', 'Connection Error');
         sendOtpBtn.textContent = 'Send OTP';
         sendOtpBtn.disabled = false;
       });
@@ -302,7 +255,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const otp = otpCodeInput?.value?.trim() || '';
 
     if (!otp || otp.length !== 6) {
-      showNotification('Please enter a valid 6-digit OTP', 'warning', 'Invalid OTP');
+      Notify.warning('Please enter a valid 6-digit OTP', 'Invalid OTP');
       return;
     }
 
@@ -386,7 +339,7 @@ document.addEventListener('DOMContentLoaded', () => {
           }
         }, 400);
       } else {
-        showNotification(data.error, 'error', 'OTP Verification Failed');
+        Notify.error(data.error, 'OTP Verification Failed');
         if (verifyOtpBtn) {
           verifyOtpBtn.textContent = 'Verify OTP';
           verifyOtpBtn.disabled = false;
@@ -395,7 +348,7 @@ document.addEventListener('DOMContentLoaded', () => {
     })
     .catch(err => {
       console.error('Error:', err);
-      showNotification('Error verifying OTP. Please try again.', 'error', 'Verification Error');
+      Notify.error('Error verifying OTP. Please try again.', 'Verification Error');
       if (verifyOtpBtn) {
         verifyOtpBtn.textContent = 'Verify OTP';
         verifyOtpBtn.disabled = false;
@@ -431,14 +384,14 @@ document.addEventListener('DOMContentLoaded', () => {
       const data = await response.json();
 
       if (data.is_sunday) {
-        showNotification('Our clinic is closed on Sundays. Please select a different date.', 'warning', 'Clinic Closed');
+        Notify.warning('Our clinic is closed on Sundays. Please select a different date.', 'Clinic Closed');
         if (dateInput) dateInput.value = '';
         if (slotGrid) slotGrid.innerHTML = '<p style="color: #f44336; text-align: center; grid-column: 1/-1;">Clinic closed on Sundays</p>';
         return;
       }
 
       if (data.doctor_not_available) {
-        showNotification(data.message || 'Selected doctor is not available on this date. Please choose another doctor or date.', 'warning', 'Doctor Unavailable');
+        Notify.warning(data.message || 'Selected doctor is not available on this date. Please choose another doctor or date.', 'Doctor Unavailable');
         if (dateInput) dateInput.value = '';
         if (slotGrid) slotGrid.innerHTML = `<p style="color: #f44336; text-align: center; grid-column: 1/-1;">${data.message || 'Doctor not available'}</p>`;
         return;
@@ -593,18 +546,18 @@ document.addEventListener('DOMContentLoaded', () => {
             if (submitBtn) submitBtn.disabled = true;
             if (slotGrid) slotGrid.innerHTML = '';
             if (formFeedback) formFeedback.textContent = 'Appointment submitted successfully!';
-            showNotification('Your appointment has been booked successfully! You will receive a confirmation email shortly.', 'success', 'Appointment Confirmed');
+            Notify.success('Your appointment has been booked successfully! You will receive a confirmation email shortly.', 'Appointment Confirmed');
           }, 2000);
         } else {
           const errorMsg = json.error || 'Unknown error occurred';
           if (formFeedback) formFeedback.textContent = 'Error: ' + errorMsg;
-          showNotification(errorMsg, 'error', 'Booking Failed');
+          Notify.error(errorMsg, 'Booking Failed');
         }
       })
       .catch(err => {
         console.error(err);
         if (formFeedback) formFeedback.textContent = 'Submission failed.';
-        showNotification('Failed to submit appointment. Please try again.', 'error', 'Submission Error');
+        Notify.error('Failed to submit appointment. Please try again.', 'Submission Error');
       });
     } else {
       if (form) form.submit();
@@ -719,7 +672,7 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // If user enters a first digit that's not 6-9, show warning
     if (value.length > 0 && !/^[6-9]/.test(value)) {
-      showNotification('Indian mobile numbers must start with 6, 7, 8, or 9', 'warning', 'Invalid First Digit');
+      Notify.warning('Indian mobile numbers must start with 6, 7, 8, or 9', 'Invalid First Digit');
       e.target.value = '';
       return;
     }
@@ -776,6 +729,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const m = document.cookie.match('(^|;)\\s*' + name + '\\s*=\\s*([^;]+)');
     return m ? m.pop() : '';
   }
+  }); // Close waitForNotify callback
 });
 
 // Scroll to appointment

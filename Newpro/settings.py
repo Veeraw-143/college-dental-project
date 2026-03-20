@@ -144,6 +144,9 @@ EMAIL_USE_TLS = True
 EMAIL_HOST_USER = 'pulipandi8158@gmail.com'
 EMAIL_HOST_PASSWORD = 'kovy ruva fjco aiug'
 
+# Admin Email for Notifications
+ADMIN_EMAIL = os.environ.get('ADMIN_EMAIL', 'pulipandi8158@gmail.com')
+ADMIN_NAME = os.environ.get('ADMIN_NAME', 'Surabi Dental Admin')
 
 # Jazzmin Configuration for Enhanced Django Admin
 JAZZMIN_SETTINGS = {

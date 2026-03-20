@@ -11,7 +11,10 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link rel="stylesheet" href="{% static 'css/notification-system.css' %}">
     <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    <link rel="stylesheet" href="{% static 'css/floating-labels.css' %}">
+    <link rel="stylesheet" href="{% static 'css/async-updates.css' %}">
     <link rel="icon" type="image/png" href="{% static 'media/logo2.png' %}">
     <style>
         /* Prevent layout shift from scrollbar */
@@ -164,7 +167,10 @@
     </div>
 </div>
 
+<script src="{% static 'js/notification-system.js' %}" defer></script>
 <script src="{% static 'js/script.js' %}" defer></script>
+<script src="{% static 'js/floating-labels.js' %}" defer></script>
+<script src="{% static 'js/async-updates.js' %}" defer></script>
 
 <!-- Chatbot Widget -->
 <script src="{% static 'js/chatbot-widget.js' %}" defer></script>

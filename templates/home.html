@@ -92,15 +92,15 @@
             <!-- Email Verification Section -->
             <div id="otp-section" class="otp-verification" style="background: #f0f4f8; padding: 20px; border-radius: 8px; margin-bottom: 20px; border-left: 4px solid #2fa4a9;">
                 <h3 style="margin-bottom: 15px;">Verify Email Address</h3>
-                <div class="field">
-                    <input type="email" id="email-otp" name="email_otp" placeholder=" " class="input-field">
+                <div class="floating-group">
+                    <input type="email" id="email-otp" name="email_otp" placeholder=" " class="input-field" required>
                     <label for="email-otp">Email Address *</label>
                 </div>
                 <button type="button" id="send-otp-btn" class="btn btn-primary" style="width: 100%; margin-bottom: 10px;">Send OTP</button>
                 
                 <div id="otp-input-section" style="display: none; margin-top: 15px;">
-                    <div class="field">
-                        <input type="text" id="otp-code" maxlength="6" placeholder=" " class="input-field">
+                    <div class="floating-group">
+                        <input type="text" id="otp-code" maxlength="6" placeholder=" " class="input-field" required>
                         <label for="otp-code">Enter OTP *</label>
                     </div>
                     <button type="button" id="verify-otp-btn" class="btn btn-primary" style="width: 100%; margin-bottom: 10px;">Verify OTP</button>
@@ -114,22 +114,22 @@
             
             <!-- Patient Information Section -->
             <h3>Patient Information</h3>
-            <div class="field">
-                <input type="text" id="name" name="name" placeholder=" " class="input-field">
+            <div class="floating-group">
+                <input type="text" id="name" name="name" placeholder=" " class="input-field" required>
                 <label for="name">Full Name *</label>
             </div>
-            <div class="field">
-                <input type="email" id="mail" name="mail" placeholder=" " class="input-field">
+            <div class="floating-group">
+                <input type="email" id="mail" name="mail" placeholder=" " class="input-field" required>
                 <label for="mail">Email Address *</label>
             </div>
-            <div class="field">
-                <input type="tel" id="mobile" name="mobile" placeholder=" " class="input-field">
+            <div class="floating-group">
+                <input type="tel" id="mobile" name="mobile" placeholder=" " class="input-field" required>
                 <label for="mobile">Mobile Number *</label>
             </div>
             
             <!-- Appointment Preferences Section -->
             <h3>Appointment Preferences</h3>
-            <div class="field">
+            <div class="floating-group">
                 <select id="doctor" name="doctor_id" class="input-field">
                     <option value="">-- Select Doctor --</option>
                     {% for doctor in doctors %}
@@ -138,7 +138,7 @@
                 </select>
                 <label for="doctor">Doctor</label>
             </div>
-            <div class="field">
+            <div class="floating-group">
                 <select id="service" name="service_id" class="input-field">
                     <option value="">-- Select Service --</option>
                     {% for service in services %}
@@ -150,8 +150,8 @@
             
             <!-- Appointment Date & Time Section -->
             <h3>Appointment Date & Time</h3>
-            <div class="field">
-                <input type="date" id="date" name="date" class="input-field">
+            <div class="floating-group">
+                <input type="date" id="date" name="date" class="input-field" required>
                 <label for="date">Select Date *</label>
             </div>
             

@@ -5,8 +5,46 @@ from project.models import bookings, Doctor, Service, OTPVerification, Feedback,
 from django.utils.html import format_html
 from datetime import datetime, timedelta
 from django.utils import timezone
+from project.excel_reports import ExcelReportGenerator
 
 logger = logging.getLogger(__name__)
+
+# Initialize Excel report generator
+excel_generator = ExcelReportGenerator()
+
+
+# ============= EXCEL EXPORT ACTIONS =============
+def export_to_excel(modeladmin, request, queryset):
+    """Generic admin action to export selected records to Excel"""
+    try:
+        model_class = queryset.model
+        response = excel_generator.generate_http_response(model_class, queryset=queryset)
+        return response
+    except Exception as e:
+        modeladmin.message_user(
+            request, 
+            f'✗ Error generating Excel: {str(e)}', 
+            level=messages.ERROR
+        )
+
+export_to_excel.short_description = '📊 Export selected to Excel'
+
+
+def export_all_to_excel(modeladmin, request, queryset):
+    """Export all records (not just selected) to Excel"""
+    try:
+        model_class = queryset.model
+        all_queryset = model_class.objects.all()
+        response = excel_generator.generate_http_response(model_class, queryset=all_queryset)
+        return response
+    except Exception as e:
+        modeladmin.message_user(
+            request, 
+            f'✗ Error generating Excel: {str(e)}', 
+            level=messages.ERROR
+        )
+
+export_all_to_excel.short_description = '📊 Export ALL to Excel'
 
 
 # ============= DOCTOR ADMIN =============
@@ -16,6 +54,7 @@ class DoctorAdmin(admin.ModelAdmin):
     search_fields = ('name', 'specialization', 'email')
     list_filter = ('is_active', 'created_at')
     readonly_fields = ('created_at', 'photo_preview')
+    actions = [export_to_excel, export_all_to_excel]
     
     # Single fieldset - all information on one page for easy data entry
     fieldsets = (
@@ -56,6 +95,7 @@ class ServiceAdmin(admin.ModelAdmin):
     search_fields = ('name', 'description')
     list_filter = ('is_active', 'created_at')
     readonly_fields = ('created_at',)
+    actions = [export_to_excel, export_all_to_excel]
     
     # Single fieldset - all information on one page
     fieldsets = (
@@ -86,6 +126,7 @@ class OTPVerificationAdmin(admin.ModelAdmin):
     search_fields = ('email',)
     list_filter = ('is_verified', 'created_at')
     readonly_fields = ('created_at', 'expires_at')
+    actions = [export_to_excel, export_all_to_excel]
     
     # Single fieldset - all information on one page
     fieldsets = (
@@ -132,7 +173,7 @@ class BookingsAdmin(admin.ModelAdmin):
     list_filter = ('appointment_date', 'time', 'status', 'created_at', 'preferred_doctor', 'preferred_service')
     readonly_fields = ('created_at', 'time_display', 'appointment_summary')
     ordering = ('-created_at',)
-    actions = ['accept_bookings', 'reject_bookings', 'mark_completed', 'send_reminder_email']
+    actions = [export_to_excel, export_all_to_excel, 'accept_bookings', 'reject_bookings', 'mark_completed', 'resend_admin_notification', 'send_reminder_email']
 
     # Single fieldset - all information on one page for easy data entry
     fieldsets = (
@@ -305,6 +346,27 @@ class BookingsAdmin(admin.ModelAdmin):
         updated = queryset.update(status=bookings.STATUS_COMPLETED)
         self.message_user(request, f'✓ Marked {updated} appointment(s) as completed', level=messages.SUCCESS)
     mark_completed.short_description = '✓ Mark as completed'
+    
+    def resend_admin_notification(self, request, queryset):
+        """Resend admin notification for selected bookings"""
+        sent = 0
+        failed = []
+        for b in queryset:
+            try:
+                result = b.send_admin_notification(request=request)
+                if result:
+                    sent += 1
+                else:
+                    failed.append(b.pk)
+            except Exception as e:
+                logger.exception('Failed to resend admin notification for booking %s: %s', b.pk, e)
+                failed.append(b.pk)
+        
+        if sent:
+            self.message_user(request, f'✓ Resent admin notification for {sent} booking(s)', level=messages.SUCCESS)
+        if failed:
+            self.message_user(request, f'✗ Failed to resend notification for {len(failed)} booking(s): {failed}', level=messages.ERROR)
+    resend_admin_notification.short_description = '🔔 Resend admin notification'
 
     def send_reminder_email(self, request, queryset):
         """Send reminder emails for selected bookings"""
@@ -334,6 +396,7 @@ class FeedbackAdmin(admin.ModelAdmin):
     search_fields = ('name', 'message')
     list_filter = ('is_active', 'created_at')
     readonly_fields = ('created_at',)
+    actions = [export_to_excel, export_all_to_excel]
     
     # Single fieldset - all information on one page
     fieldsets = (

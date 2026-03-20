@@ -183,28 +183,73 @@ class bookings(models.Model):
 
     def send_admin_notification(self, request=None):
         """Send notification email to admin about new booking."""
-        subject = f'New Appointment Request - {self.Name} on {self.appointment_date}'
-        message = (
-            f'New Appointment Booking Received:\n\n'
-            f'Patient Name: {self.Name}\n'
-            f'Email: {self.mail}\n'
-            f'Phone: {self.mobile}\n'
-            f'Appointment Date: {self.appointment_date}\n'
-            f'Appointment Time: {self.get_time_12hr()}\n\n'
-            f'Please review and accept/reject this booking in the admin panel.\n\n'
-            f'Surabi Dental Care Admin'
-        )
-        from_email = getattr(settings, 'DEFAULT_FROM_EMAIL', 'pulipandi8158@gmail.com')
-        admin_email = getattr(settings, 'DEFAULT_FROM_EMAIL', 'pulipandi8158@gmail.com')
-        to = [admin_email]
-
         try:
-            email = EmailMessage(subject=subject, body=message, from_email=from_email, to=to)
-            sent = email.send(fail_silently=False)
-            logger.info('Sent admin notification for booking %s (patient: %s)', self.pk, self.Name)
+            from_email = getattr(settings, 'DEFAULT_FROM_EMAIL', 'pulipandi8158@gmail.com')
+            admin_email = getattr(settings, 'ADMIN_EMAIL', 'pulipandi8158@gmail.com')
+            admin_name = getattr(settings, 'ADMIN_NAME', 'Surabi Dental Admin')
+            
+            # Validate email addresses
+            if not admin_email or '@' not in admin_email:
+                logger.error('Invalid admin email configured: %s', admin_email)
+                return False
+            
+            # Prepare doctor name if available
+            doctor_name = f" - Dr. {self.preferred_doctor.name}" if self.preferred_doctor else ""
+            service_name = f" ({self.preferred_service.name})" if self.preferred_service else ""
+            
+            subject = f'🚨 New Appointment Request - {self.Name} on {self.appointment_date}{doctor_name}'
+            
+            # Create HTML and plain text message
+            message = (
+                f'New Appointment Booking Received!\n\n'
+                f'========================================\n'
+                f'PATIENT INFORMATION\n'
+                f'========================================\n'
+                f'Name: {self.Name}\n'
+                f'Email: {self.mail}\n'
+                f'Phone: {self.mobile}\n'
+                f'OTP Verified: {"Yes" if self.otp_verified else "No"}\n\n'
+                f'========================================\n'
+                f'APPOINTMENT DETAILS\n'
+                f'========================================\n'
+                f'Date: {self.appointment_date}\n'
+                f'Time: {self.get_time_12hr()}\n'
+                f'Doctor: {self.preferred_doctor.name if self.preferred_doctor else "Not specified"}\n'
+                f'Service: {self.preferred_service.name if self.preferred_service else "Not specified"}\n\n'
+                f'========================================\n'
+                f'ACTION REQUIRED\n'
+                f'========================================\n'
+                f'Please review and accept/reject this booking in the admin panel\n'
+                f'Link: {settings.SITE_URL}admin/project/bookings/{self.pk}/change/\n\n'
+                f'Status: {self.get_status_display()}\n'
+                f'Booking ID: {self.pk}\n'
+                f'Created: {self.created_at.strftime("%Y-%m-%d %H:%M:%S")}\n\n'
+                f'Best regards,\n'
+                f'Surabi Dental Care System'
+            )
+            
+            # Send email
+            email = EmailMessage(
+                subject=subject, 
+                body=message, 
+                from_email=from_email, 
+                to=[admin_email]
+            )
+            
+            # Send with fail_silently=False to catch errors
+            result = email.send(fail_silently=False)
+            
+            if result == 1:
+                logger.info('✓ Admin notification sent successfully for booking %s (patient: %s, admin: %s)', self.pk, self.Name, admin_email)
+                return True
+            else:
+                logger.warning('⚠ Admin notification may not have been sent for booking %s (send returned %d)', self.pk, result)
+                return False
+                
         except Exception as e:
-            logger.exception('Failed to send admin notification: %s', e)
-            raise
+            logger.error('✗ Failed to send admin notification for booking %s: %s', self.pk, str(e))
+            logger.exception('Full exception traceback:')
+            return False
 
     def send_qr_and_notify(self, request=None, sms_enabled=False):
         """Send the QR code to the user's email and optionally SMS (if configured).
