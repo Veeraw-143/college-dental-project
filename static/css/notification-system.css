@@ -1,0 +1,323 @@
+/* ========================================
+   MODERN NOTIFICATION SYSTEM
+   Clean, accessible, responsive notifications
+   ======================================== */
+
+/* Notification Container */
+#notification-container {
+    position: fixed;
+    top: 20px;
+    right: 20px;  /* Space from right edge, not pinned to edge */
+    z-index: 10000;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    max-width: 400px;
+    width: 100%;  /* Take available width up to max-width */
+    pointer-events: none;
+    box-sizing: border-box;
+    padding: 0;  /* No horizontal padding needed with right: 20px */
+    max-height: 100vh;
+    overflow: visible;  /* Allow notifications to overflow smoothly */
+}
+
+/* Individual Notification */
+.notification {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 14px 16px;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    animation: slideInRight 0.4s ease-out forwards;
+    font-size: 14px;
+    line-height: 1.4;
+    pointer-events: auto;
+    backdrop-filter: blur(10px);
+    border-left: 4px solid transparent;
+    min-height: 48px;
+    position: relative;
+    box-sizing: border-box;
+    width: 100%;  /* Fill container width */
+    max-width: 100%;  /* Ensure no overflow beyond container */
+    overflow: hidden;  /* Contain internal content */
+    white-space: normal;
+}
+
+/* ========================================
+   NOTIFICATION TYPES
+   ======================================== */
+
+/* Success Notification */
+.notification.success {
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    color: white;
+    border-left-color: #ffffff;
+}
+
+.notification.success .notification-icon {
+    color: #ffffff;
+}
+
+/* Error Notification */
+.notification.error {
+    background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+    color: white;
+    border-left-color: #ffffff;
+}
+
+.notification.error .notification-icon {
+    color: #ffffff;
+}
+
+/* Warning Notification */
+.notification.warning {
+    background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+    color: white;
+    border-left-color: #ffffff;
+}
+
+.notification.warning .notification-icon {
+    color: #ffffff;
+}
+
+/* Info Notification */
+.notification.info {
+    background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+    color: white;
+    border-left-color: #ffffff;
+}
+
+.notification.info .notification-icon {
+    color: #ffffff;
+}
+
+/* ========================================
+   NOTIFICATION CONTENT
+   ======================================== */
+
+.notification-icon {
+    flex-shrink: 0;
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    line-height: 1;
+}
+
+.notification-content {
+    flex: 1;
+    min-width: 0;  /* CRITICAL: allows flex item to shrink below content size */
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    width: 100%;
+    overflow: visible;
+}
+
+.notification-title {
+    font-weight: 600;
+    font-size: 14px;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    word-break: break-word;  /* For very long words */
+    white-space: pre-wrap;
+    overflow: visible;
+}
+
+.notification-message {
+    font-weight: 400;
+    font-size: 13px;
+    opacity: 0.95;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    word-break: break-word;  /* For very long words */
+    white-space: pre-wrap;
+    overflow: visible;
+}
+
+/* Close Button */
+.notification-close {
+    flex-shrink: 0;
+    width: 24px;
+    height: 24px;
+    padding: 0;
+    border: none;
+    background: transparent;
+    color: inherit;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    line-height: 1;
+    opacity: 0.8;
+    transition: opacity 0.2s ease;
+}
+
+.notification-close:hover {
+    opacity: 1;
+}
+
+.notification-close:active {
+    transform: scale(0.9);
+}
+
+/* Progress Bar */
+.notification-progress {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    height: 3px;
+    background: rgba(255, 255, 255, 0.3);
+    border-radius: 0 0 8px 0;
+}
+
+.notification.success .notification-progress {
+    background: rgba(255, 255, 255, 0.3);
+}
+
+/* ========================================
+   ANIMATIONS
+   ======================================== */
+
+/* Slide-in from right */
+@keyframes slideInRight {
+    from {
+        opacity: 0;
+        transform: translateX(430px);  /* Fixed pixel value: container width (400px) + right margin (20px) + extra (10px) */
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+/* Slide-out to right */
+@keyframes slideOutRight {
+    to {
+        opacity: 0;
+        transform: translateX(430px);  /* Match slideInRight distance */
+    }
+}
+
+/* Fade out */
+@keyframes fadeOut {
+    from {
+        opacity: 1;
+    }
+    to {
+        opacity: 0;
+    }
+}
+
+/* Progress bar animation */
+@keyframes progressBar {
+    from {
+        width: 100%;
+    }
+    to {
+        width: 0%;
+    }
+}
+
+/* Notification exit animation */
+.notification.exiting {
+    animation: slideOutRight 0.3s ease-in forwards;
+}
+
+/* Progress animation with duration based on notification timeout */
+.notification-progress.active {
+    animation: progressBar linear forwards;
+}
+
+/* ========================================
+   RESPONSIVE DESIGN
+   ======================================== */
+
+@media (max-width: 640px) {
+    #notification-container {
+        top: 10px;
+        right: 10px;
+        left: 10px;
+        max-width: none;
+        width: calc(100% - 20px);  /* Account for right and left margins */
+        padding: 0;  /* No padding needed */
+    }
+
+    .notification {
+        font-size: 13px;
+        padding: 12px 14px;
+        width: 100%;
+    }
+
+    .notification-title {
+        font-size: 13px;
+    }
+
+    .notification-message {
+        font-size: 12px;
+    }
+}
+
+/* Tablet size */
+@media (min-width: 641px) and (max-width: 1024px) {
+    #notification-container {
+        max-width: 350px;
+        width: 100%;  /* Fill available width up to max-width */
+    }
+}
+
+/* Desktop size */
+@media (min-width: 1025px) {
+    #notification-container {
+        max-width: 400px;
+        width: 100%;  /* Fill available width up to max-width */
+    }
+}
+
+/* ========================================
+   ACCESSIBILITY
+   ======================================== */
+
+/* Focus styles for keyboard navigation */
+.notification-close:focus-visible {
+    outline: 2px solid rgba(255, 255, 255, 0.5);
+    outline-offset: 2px;
+    border-radius: 4px;
+}
+
+/* Respect prefers-reduced-motion */
+@media (prefers-reduced-motion: reduce) {
+    .notification {
+        animation: none;
+        opacity: 1;
+    }
+
+    .notification.exiting {
+        animation: none;
+        opacity: 0;
+    }
+
+    .notification-progress.active {
+        animation: none;
+        width: 0%;
+    }
+}
+
+/* Dark mode support */
+@media (prefers-color-scheme: dark) {
+    .notification {
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    }
+}
+
+/* High contrast mode */
+@media (prefers-contrast: more) {
+    .notification {
+        border-left-width: 6px;
+        box-shadow: 0 0 0 1px currentColor;
+    }
+}
